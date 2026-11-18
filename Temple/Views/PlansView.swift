@@ -3,6 +3,7 @@ import SwiftData
 
 struct PlansView: View {
     @Query(sort: \Plan.name) private var plans: [Plan]
+    @Environment(\.modelContext) private var ctx
     @State private var running: Plan?
 
     var body: some View {
@@ -13,11 +14,13 @@ struct PlansView: View {
                         let count = plan.blocks.reduce(0) { $0 + $1.exerciseNames.count }
                         let circuits = plan.blocks.filter(\.isCircuit).count
                         HStack(spacing: 12) {
-                            VStack(alignment: .leading, spacing: 2) {
+                            NavigationLink { PlanEditorView(plan: plan) } label: {
+                                VStack(alignment: .leading, spacing: 2) {
                                 Text(plan.name).font(.system(size: 17, weight: .semibold))
                                 Text("\(count) exercises" + (circuits > 0 ? " · \(circuits) circuit\(circuits == 1 ? "" : "s")" : ""))
                                     .font(.system(size: 13)).foregroundStyle(Color.textSecondary)
                             }
+                            }.buttonStyle(.plain)
                             Spacer()
                             Button("Start") { running = plan }
                                 .font(.system(size: 15, weight: .semibold)).foregroundStyle(Color.yolkInk)
@@ -31,6 +34,7 @@ struct PlansView: View {
             }
             .background(Color.bg)
             .navigationTitle("Plans")
+            .toolbar { ToolbarItem(placement: .primaryAction) { Button { ctx.insert(Plan(name: "New plan")); try? ctx.save() } label: { Image(systemName: "plus") }.tint(Color.yolk) } }
         }
         .fullScreenCover(item: $running) { plan in WorkoutView(plan: plan) }
     }
