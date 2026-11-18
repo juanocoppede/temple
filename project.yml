@@ -1,0 +1,27 @@
+name: Temple
+options:
+  bundleIdPrefix: app.temple
+  deploymentTarget:
+    iOS: "18.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.10"
+    CODE_SIGNING_ALLOWED: NO
+    CODE_SIGNING_REQUIRED: NO
+    CODE_SIGN_IDENTITY: ""
+targets:
+  Temple:
+    type: application
+    platform: iOS
+    sources: [Temple]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.temple.Temple
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIUserInterfaceStyle: Dark
+        INFOPLIST_KEY_NSCameraUsageDescription: "Take a photo of your meal to estimate calories and protein."
+        INFOPLIST_KEY_NSMicrophoneUsageDescription: "Describe your meal by voice."
+        INFOPLIST_KEY_NSSpeechRecognitionUsageDescription: "Turn your voice into meal text."
+        GENERATE_INFOPLIST_FILE: YES
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
