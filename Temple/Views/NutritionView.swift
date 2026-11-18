@@ -97,6 +97,8 @@ struct AddMealView: View {
     let slot: MealSlot
     @Environment(\.modelContext) private var ctx
     @Environment(\.dismiss) private var dismiss
+    @StateObject private var dictation = Dictation()
+    @State private var showCamera = false
     @State private var aiText = ""
     @State private var pick: PhotosPickerItem?
     @State private var image: UIImage?
@@ -113,7 +115,9 @@ struct AddMealView: View {
             Form {
                 Section("Estimate with AI") {
                     TextField("Describe what you ate", text: $aiText, axis: .vertical)
-                    PhotosPicker(selection: $pick, matching: .images) { Label(image == nil ? "Choose a photo" : "Photo selected", systemImage: "photo") }
+                    Button { dictation.toggle() } label: { Label(dictation.listening ? "Stop dictation" : "Dictate", systemImage: dictation.listening ? "stop.circle.fill" : "mic") }
+                    Button { showCamera = true } label: { Label("Take a photo", systemImage: "camera") }
+                    PhotosPicker(selection: $pick, matching: .images) { Label(image == nil ? "Choose from library" : "Photo selected", systemImage: "photo") }
                     Button { Task { await analyze() } } label: { if busy { ProgressView() } else { Text("Analyze") } }
                         .disabled(busy || (aiText.isEmpty && image == nil))
                     if let error { Text(error).font(.footnote).foregroundStyle(Color.destructive) }
@@ -141,6 +145,8 @@ struct AddMealView: View {
             }
             .scrollContentBackground(.hidden).background(Color.bg)
             .navigationTitle("Add to \(slot.rawValue)").navigationBarTitleDisplayMode(.inline)
+            .fullScreenCover(isPresented: $showCamera) { CameraPicker { image = $0 }.ignoresSafeArea() }
+            .onChange(of: dictation.text) { _, t in aiText = t }
             .onChange(of: pick) { _, new in
                 Task { if let d = try? await new?.loadTransferable(type: Data.self), let img = UIImage(data: d) { image = img } }
             }

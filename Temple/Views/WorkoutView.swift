@@ -10,8 +10,21 @@ struct WorkoutStep {
     let circuitOrder: [String]
 }
 
+struct WorkoutBlock {
+    let isCircuit: Bool
+    let circuitName: String?
+    let names: [String]
+}
+
+extension Plan {
+    var workoutBlocks: [WorkoutBlock] {
+        blocks.sorted { $0.order < $1.order }.map { WorkoutBlock(isCircuit: $0.isCircuit, circuitName: $0.circuitName, names: $0.exerciseNames) }
+    }
+}
+
 struct WorkoutView: View {
-    let plan: Plan
+    let planName: String
+    let blocks: [WorkoutBlock]
     @Environment(\.modelContext) private var ctx
     @Environment(\.dismiss) private var dismiss
     @Query private var allExercises: [Exercise]
@@ -24,8 +37,8 @@ struct WorkoutView: View {
     private var steps: [WorkoutStep] {
         let byName = Dictionary(uniqueKeysWithValues: allExercises.map { ($0.name, $0) })
         var out: [WorkoutStep] = []
-        for (bi, block) in plan.blocks.sorted(by: { $0.order < $1.order }).enumerated() {
-            let exs = block.exerciseNames.compactMap { byName[$0] }
+        for (bi, block) in blocks.enumerated() {
+            let exs = block.names.compactMap { byName[$0] }
             if block.isCircuit {
                 for round in 1...PlanBlock.circuitRounds {
                     for ex in exs { out.append(WorkoutStep(exercise: ex, number: round, total: PlanBlock.circuitRounds, blockIndex: bi, circuit: block.circuitName ?? "Circuit", circuitOrder: exs.map(\.name))) }
@@ -43,7 +56,7 @@ struct WorkoutView: View {
             HStack {
                 Button("Close") { dismiss() }.foregroundStyle(Color.textSecondary)
                 Spacer()
-                Text(plan.name).font(.system(size: 17, weight: .semibold))
+                Text(planName).font(.system(size: 17, weight: .semibold))
                 Spacer()
                 Button("Finish") { dismiss() }.fontWeight(.semibold).foregroundStyle(Color.yolk)
             }.font(.system(size: 17)).frame(height: 44)
@@ -120,7 +133,7 @@ struct WorkoutView: View {
     }
 
     private func complete(step: WorkoutStep, all: [WorkoutStep]) {
-        let s = session ?? { let n = WorkoutSession(planName: plan.name); ctx.insert(n); session = n; return n }()
+        let s = session ?? { let n = WorkoutSession(planName: planName); ctx.insert(n); session = n; return n }()
         let log = SetLog(exerciseName: step.exercise.name, weightKg: step.exercise.weightKg, reps: reps, setNumber: step.number, circuitName: step.circuit)
         ctx.insert(log); s.sets.append(log)
         done[index] = reps
