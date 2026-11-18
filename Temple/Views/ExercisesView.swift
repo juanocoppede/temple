@@ -18,7 +18,7 @@ struct ExercisesView: View {
                     Section {
                         VStack(spacing: 0) {
                             ForEach(Array(filtered.enumerated()), id: \.element.persistentModelID) { i, ex in
-                                ExerciseRow(exercise: ex)
+                                NavigationLink { ExerciseDetailView(exercise: ex) } label: { ExerciseRow(exercise: ex) }.buttonStyle(.plain)
                                 if i < filtered.count - 1 { Divider().overlay(Color.white.opacity(0.08)).padding(.leading, 86) }
                             }
                         }

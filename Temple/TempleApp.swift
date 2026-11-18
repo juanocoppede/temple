@@ -15,8 +15,8 @@ struct RootView: View {
         TabView {
             Tab("Exercises", systemImage: "dumbbell") { ExercisesView() }
             Tab("Plans", systemImage: "list.bullet") { PlansView() }
-            Tab("Nutrition", systemImage: "circle.circle") { Text("Nutrition").foregroundStyle(Color.textPrimary) }
-            Tab("Calendar", systemImage: "calendar") { Text("Calendar").foregroundStyle(Color.textPrimary) }
+            Tab("Nutrition", systemImage: "circle.circle") { NutritionView() }
+            Tab("Calendar", systemImage: "calendar") { CalendarView() }
         }
         .tint(Color.yolk)
         .background(Color.bg)
