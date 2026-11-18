@@ -28,3 +28,22 @@ struct PrimaryButton: ButtonStyle {
             .opacity(configuration.isPressed ? 0.85 : 1)
     }
 }
+
+func fmt(_ v: Double) -> String { v == v.rounded() ? String(Int(v)) : String(format: "%.1f", v) }
+
+struct Card: ViewModifier {
+    func body(content: Content) -> some View {
+        content.padding(Space.inCard).background(Color.card, in: RoundedRectangle(cornerRadius: Radius.card))
+    }
+}
+extension View { func card() -> some View { modifier(Card()) } }
+
+struct Chip: View {
+    let text: String; var selected = false
+    var body: some View {
+        Text(text).font(.system(size: 15, weight: selected ? .semibold : .regular))
+            .foregroundStyle(selected ? Color.yolkInk : Color.textPrimary)
+            .padding(.horizontal, 14).frame(height: 32)
+            .background(selected ? Color.yolk : Color.card, in: Capsule())
+    }
+}

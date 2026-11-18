@@ -29,8 +29,8 @@ enum MealSlot: String, Codable, CaseIterable { case breakfast = "Breakfast", lun
     var order: Int
     var isCircuit: Bool
     var circuitName: String?
-    var exercises: [Exercise] = []
-    init(order: Int, isCircuit: Bool, circuitName: String? = nil) { self.order = order; self.isCircuit = isCircuit; self.circuitName = circuitName }
+    var exerciseNames: [String] = []   // ordered; names are unique
+    init(order: Int, isCircuit: Bool, circuitName: String? = nil, exerciseNames: [String]) { self.order = order; self.isCircuit = isCircuit; self.circuitName = circuitName; self.exerciseNames = exerciseNames }
     static let circuitRounds = 3
 }
 
