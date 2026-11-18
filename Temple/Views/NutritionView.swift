@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import PhotosUI
 
 struct Ring: View {
     let title: String; let value: Double; let target: Double; let unit: String
@@ -23,6 +24,7 @@ struct NutritionView: View {
     @Query private var meals: [MealEntry]
     @Query private var targets: [Targets]
     @State private var addingTo: MealSlot?
+    @State private var showSettings = false
 
     init() {
         let start = Calendar.current.startOfDay(for: .now)
@@ -63,6 +65,8 @@ struct NutritionView: View {
             }
             .background(Color.bg)
             .navigationTitle("Nutrition")
+            .toolbar { ToolbarItem(placement: .primaryAction) { Button { showSettings = true } label: { Image(systemName: "gearshape") }.tint(Color.textSecondary) } }
+            .sheet(isPresented: $showSettings) { SettingsView() }
             .sheet(item: $addingTo) { slot in AddMealView(slot: slot) }
         }
     }
@@ -70,10 +74,35 @@ struct NutritionView: View {
 
 extension MealSlot: Identifiable { var id: String { rawValue } }
 
+struct SettingsView: View {
+    @AppStorage("proxyURL") private var proxyURL = ""
+    @AppStorage("proxySecret") private var proxySecret = ""
+    @Environment(\.dismiss) private var dismiss
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("AI proxy") {
+                    TextField("https://temple-ai.you.workers.dev", text: $proxyURL).textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(.URL)
+                    SecureField("App secret", text: $proxySecret)
+                }
+            }
+            .scrollContentBackground(.hidden).background(Color.bg)
+            .navigationTitle("Settings").navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
+        }.tint(Color.yolk)
+    }
+}
+
 struct AddMealView: View {
     let slot: MealSlot
     @Environment(\.modelContext) private var ctx
     @Environment(\.dismiss) private var dismiss
+    @State private var aiText = ""
+    @State private var pick: PhotosPickerItem?
+    @State private var image: UIImage?
+    @State private var items: [FoodItem] = []
+    @State private var busy = false
+    @State private var error: String?
     @State private var name = ""
     @State private var grams = ""
     @State private var kcal = ""
@@ -82,7 +111,28 @@ struct AddMealView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Add to \(slot.rawValue)") {
+                Section("Estimate with AI") {
+                    TextField("Describe what you ate", text: $aiText, axis: .vertical)
+                    PhotosPicker(selection: $pick, matching: .images) { Label(image == nil ? "Choose a photo" : "Photo selected", systemImage: "photo") }
+                    Button { Task { await analyze() } } label: { if busy { ProgressView() } else { Text("Analyze") } }
+                        .disabled(busy || (aiText.isEmpty && image == nil))
+                    if let error { Text(error).font(.footnote).foregroundStyle(Color.destructive) }
+                }
+                if !items.isEmpty {
+                    Section("Review - tap to edit") {
+                        ForEach($items) { $item in
+                            VStack(alignment: .leading, spacing: 8) {
+                                TextField("Food", text: $item.name).font(.headline)
+                                HStack {
+                                    TextField("g", value: $item.grams, format: .number).keyboardType(.decimalPad)
+                                    TextField("kcal", value: $item.kcal, format: .number).keyboardType(.decimalPad)
+                                    TextField("protein g", value: $item.proteinG, format: .number).keyboardType(.decimalPad)
+                                }.font(.subheadline).foregroundStyle(Color.textSecondary)
+                            }
+                        }.onDelete { items.remove(atOffsets: $0) }
+                    }
+                }
+                Section("Add manually to \(slot.rawValue)") {
                     TextField("Food", text: $name)
                     TextField("Grams", text: $grams).keyboardType(.decimalPad)
                     TextField("Calories (kcal)", text: $kcal).keyboardType(.decimalPad)
@@ -90,18 +140,36 @@ struct AddMealView: View {
                 }
             }
             .scrollContentBackground(.hidden).background(Color.bg)
-            .navigationTitle("Add meal").navigationBarTitleDisplayMode(.inline)
+            .navigationTitle("Add to \(slot.rawValue)").navigationBarTitleDisplayMode(.inline)
+            .onChange(of: pick) { _, new in
+                Task { if let d = try? await new?.loadTransferable(type: Data.self), let img = UIImage(data: d) { image = img } }
+            }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        ctx.insert(MealEntry(slot: slot, name: name.isEmpty ? slot.rawValue : name, grams: num(grams), kcal: num(kcal), proteinG: num(protein)))
-                        try? ctx.save(); dismiss()
-                    }.disabled(kcal.isEmpty && protein.isEmpty)
+                    Button("Save") { save() }.disabled(items.isEmpty && kcal.isEmpty && protein.isEmpty)
                 }
             }
         }
         .tint(Color.yolk)
+    }
+
+    private func analyze() async {
+        busy = true; error = nil
+        defer { busy = false }
+        do {
+            items = try await AIService.analyze(text: aiText, image: image)
+            if items.isEmpty { error = "Nothing recognised. Try describing it." }
+        } catch { self.error = error.localizedDescription }
+    }
+
+    private func save() {
+        for i in items { ctx.insert(MealEntry(slot: slot, name: i.name, grams: i.grams, kcal: i.kcal, proteinG: i.proteinG)) }
+        if !kcal.isEmpty || !protein.isEmpty {
+            ctx.insert(MealEntry(slot: slot, name: name.isEmpty ? slot.rawValue : name, grams: num(grams), kcal: num(kcal), proteinG: num(protein)))
+        }
+        image = nil      // photos are never stored
+        try? ctx.save(); dismiss()
     }
     private func num(_ s: String) -> Double { Double(s.replacingOccurrences(of: ",", with: ".")) ?? 0 }
 }
