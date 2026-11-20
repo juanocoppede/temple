@@ -63,6 +63,7 @@ struct NutritionView: View {
                     }
                 }.padding(Space.margin).foregroundStyle(Color.textPrimary)
             }
+            .contentMargins(.bottom, Space.tabBarClearance, for: .scrollContent)
             .background(Color.bg)
             .navigationTitle("Nutrition")
             .toolbar { ToolbarItem(placement: .primaryAction) { Button { showSettings = true } label: { Image(systemName: "gearshape") }.tint(Color.textSecondary) } }

@@ -61,6 +61,7 @@ struct ExerciseDetailView: View {
                 }
             }.padding(Space.margin).foregroundStyle(Color.textPrimary).frame(maxWidth: .infinity, alignment: .leading)
         }
+        .contentMargins(.bottom, Space.tabBarClearance, for: .scrollContent)
         .background(Color.bg).navigationBarTitleDisplayMode(.inline)
     }
 }

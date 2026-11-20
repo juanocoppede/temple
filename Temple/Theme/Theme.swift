@@ -17,7 +17,11 @@ extension Color {
 }
 
 enum Radius { static let control: CGFloat = 12, cta: CGFloat = 16, card: CGFloat = 20, sheet: CGFloat = 28 }
-enum Space { static let margin: CGFloat = 20, inCard: CGFloat = 16 }
+enum Space {
+    static let margin: CGFloat = 20, inCard: CGFloat = 16
+    /// Bottom scroll margin so lists end above the floating tab bar (bar ≈ 97 pt + 6 pt gap, plus air).
+    static let tabBarClearance: CGFloat = 128
+}
 
 struct PrimaryButton: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {

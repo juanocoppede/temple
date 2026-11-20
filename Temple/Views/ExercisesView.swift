@@ -35,6 +35,7 @@ struct ExercisesView: View {
                     }
                 }
             }
+            .contentMargins(.bottom, Space.tabBarClearance, for: .scrollContent)
             .background(Color.bg)
             .navigationTitle("Exercises")
             .searchable(text: $search, prompt: "Search \(exercises.count) exercises")

@@ -26,18 +26,14 @@ struct RootView: View {
     @State private var tab: AppTab = .exercises
 
     var body: some View {
-        ZStack {
+        ZStack(alignment: .bottom) {
             ZStack {
                 ExercisesView().opacity(tab == .exercises ? 1 : 0).allowsHitTesting(tab == .exercises)
                 PlansView().opacity(tab == .plans ? 1 : 0).allowsHitTesting(tab == .plans)
                 NutritionView().opacity(tab == .nutrition ? 1 : 0).allowsHitTesting(tab == .nutrition)
                 CalendarView().opacity(tab == .calendar ? 1 : 0).allowsHitTesting(tab == .calendar)
             }
-        }
-        // The bar is a bottom safe-area inset, so every list/scroll view stops above it automatically.
-        // The 28 pt of clear space above the bar is part of the inset: lists get room to breathe at the end.
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            FloatingTabBar(selection: $tab).padding(.top, 28)
+            FloatingTabBar(selection: $tab)
         }
         .background(Color.bg.ignoresSafeArea())
         .onAppear { Seed.run(ctx) }

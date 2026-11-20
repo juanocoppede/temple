@@ -14,6 +14,7 @@ struct CalendarView: View {
                 MonthGrid(month: $month, marked: marked) { selected = $0 }
                     .card().padding(Space.margin).foregroundStyle(Color.textPrimary)
             }
+            .contentMargins(.bottom, Space.tabBarClearance, for: .scrollContent)
             .background(Color.bg)
             .navigationTitle("Calendar")
             .navigationDestination(item: $selected) { DayDetailView(date: $0) }
@@ -69,6 +70,7 @@ struct DayDetailView: View {
                 }
             }.padding(Space.margin).foregroundStyle(Color.textPrimary).frame(maxWidth: .infinity, alignment: .leading)
         }
+        .contentMargins(.bottom, Space.tabBarClearance, for: .scrollContent)
         .background(Color.bg).navigationBarTitleDisplayMode(.inline)
     }
 

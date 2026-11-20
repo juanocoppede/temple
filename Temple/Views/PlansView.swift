@@ -44,6 +44,7 @@ struct PlansView: View {
                         .background(Color.raised, in: RoundedRectangle(cornerRadius: Radius.cta))
                 }.padding(Space.margin)
             }
+            .contentMargins(.bottom, Space.tabBarClearance, for: .scrollContent)
             .background(Color.bg)
             .navigationTitle("Plans")
             .toolbar { ToolbarItem(placement: .primaryAction) { Button { ctx.insert(Plan(name: "New plan")); try? ctx.save() } label: { Image(systemName: "plus") }.tint(Color.yolk) } }
