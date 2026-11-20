@@ -14,7 +14,7 @@ export default {
     const parts = [{ text: PROMPT + (text ? `\nDescription: ${text}` : "") }];
     if (imageBase64) parts.push({ inline_data: { mime_type: "image/jpeg", data: imageBase64 } });
 
-    const model = env.MODEL || "gemini-2.5-flash";
+    const model = env.MODEL || "gemini-3.6-flash";
     const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
       method: "POST",
       headers: { "content-type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
