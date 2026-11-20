@@ -35,7 +35,11 @@ enum AIService {
         req.httpBody = try JSONSerialization.data(withJSONObject: payload)
         req.timeoutInterval = 40
         let (data, resp) = try await URLSession.shared.data(for: req)
-        guard (resp as? HTTPURLResponse)?.statusCode == 200 else { throw AIError.failed("The AI service didn't answer. Try again or add the meal manually.") }
+        let code = (resp as? HTTPURLResponse)?.statusCode ?? 0
+        guard code == 200 else {
+            let body = String(data: data, encoding: .utf8)?.prefix(300) ?? ""
+            throw AIError.failed("AI service error \(code): \(body)")
+        }
         struct Reply: Decodable { let items: [FoodItem] }
         return try JSONDecoder().decode(Reply.self, from: data).items
     }

@@ -20,7 +20,7 @@ export default {
       headers: { "content-type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
       body: JSON.stringify({ contents: [{ parts }], generationConfig: { responseMimeType: "application/json", temperature: 0.2 } }),
     });
-    if (!r.ok) return new Response(`Gemini error ${r.status}`, { status: 502 });
+    if (!r.ok) return new Response(`Gemini error ${r.status}: ${(await r.text()).slice(0, 250)}`, { status: 502 });
     const data = await r.json();
     const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '{"items":[]}';
     let parsed;
