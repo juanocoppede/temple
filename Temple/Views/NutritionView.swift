@@ -86,6 +86,7 @@ struct SettingsView: View {
                     SecureField("App secret", text: $proxySecret)
                 }
             }
+            .scrollDismissesKeyboard(.interactively)
             .scrollContentBackground(.hidden).background(Color.bg)
             .navigationTitle("Settings").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
@@ -143,6 +144,8 @@ struct AddMealView: View {
                     TextField("Protein (g)", text: $protein).keyboardType(.decimalPad)
                 }
             }
+            .scrollDismissesKeyboard(.interactively)
+            .simultaneousGesture(TapGesture().onEnded { hideKeyboard() })
             .scrollContentBackground(.hidden).background(Color.bg)
             .navigationTitle("Add to \(slot.rawValue)").navigationBarTitleDisplayMode(.inline)
             .fullScreenCover(isPresented: $showCamera) { CameraPicker { image = $0 }.ignoresSafeArea() }
@@ -151,6 +154,7 @@ struct AddMealView: View {
                 Task { if let d = try? await new?.loadTransferable(type: Data.self), let img = UIImage(data: d) { image = img } }
             }
             .toolbar {
+                ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("Done") { hideKeyboard() } }
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") { save() }.disabled(items.isEmpty && kcal.isEmpty && protein.isEmpty)

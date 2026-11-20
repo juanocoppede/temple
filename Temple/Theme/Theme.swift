@@ -1,3 +1,4 @@
+import UIKit
 import SwiftUI
 
 extension Color {
@@ -47,3 +48,5 @@ struct Chip: View {
             .background(selected ? Color.yolk : Color.card, in: Capsule())
     }
 }
+
+func hideKeyboard() { UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil) }

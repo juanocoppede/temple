@@ -23,10 +23,17 @@ struct ExerciseDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
+                ExerciseArt(exercise: exercise, height: 200, radius: 24)
                 VStack(alignment: .leading, spacing: 4) {
                     Text(exercise.name).font(.system(size: 28, weight: .bold))
                     Text("\(exercise.muscleGroup) · \(exercise.equipment)").font(.system(size: 15)).foregroundStyle(Color.textSecondary)
                     Text("Currently using \(fmt(exercise.weightKg)) kg · \(exercise.targetSets) × \(exercise.targetReps)").font(.system(size: 15)).foregroundStyle(Color.textSecondary)
+                }
+                if !exercise.tips.isEmpty {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Cómo hacerlo").font(.system(size: 20, weight: .bold)).foregroundStyle(Color.yolk)
+                        TipsList(tips: exercise.tips)
+                    }
                 }
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Weight").font(.system(size: 20, weight: .bold)).foregroundStyle(Color.yolk)

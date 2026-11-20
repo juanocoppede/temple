@@ -33,6 +33,7 @@ struct WorkoutView: View {
     @State private var reps = 0
     @State private var done: [Int: Int] = [:]       // step index -> reps logged
     @State private var session: WorkoutSession?
+    @State private var showTips = false
 
     private var steps: [WorkoutStep] {
         let byName = Dictionary(uniqueKeysWithValues: allExercises.map { ($0.name, $0) })
@@ -63,7 +64,9 @@ struct WorkoutView: View {
 
             if index < all.count {
                 let step = all[index]
-                content(step: step, all: all)
+                ScrollView { VStack(spacing: 20) { content(step: step, all: all) } }.scrollIndicators(.hidden)
+                Button(step.circuit != nil ? "Complete round \(step.number)" : "Complete set \(step.number)") { complete(step: step, all: all) }
+                    .buttonStyle(PrimaryButton())
             } else {
                 Spacer()
                 Text("Workout complete").font(.system(size: 28, weight: .bold))
@@ -75,6 +78,7 @@ struct WorkoutView: View {
         .padding(.horizontal, Space.margin).padding(.bottom, 28)
         .background(Color.bg.ignoresSafeArea())
         .onAppear { if let s = all.first { reps = s.exercise.targetReps } }
+        .sheet(isPresented: $showTips) { if index < all.count { TipsSheet(exercise: all[index].exercise) } }
     }
 
     @ViewBuilder private func content(step: WorkoutStep, all: [WorkoutStep]) -> some View {
@@ -94,10 +98,16 @@ struct WorkoutView: View {
             Text("\(c) · ROUND \(step.number) OF \(step.total)").font(.system(size: 12, weight: .semibold)).tracking(0.7).foregroundStyle(Color.yolk).frame(maxWidth: .infinity, alignment: .leading)
         }
         VStack(alignment: .leading, spacing: 4) {
-            Text(ex.name).font(.system(size: 28, weight: .bold))
+            HStack(spacing: 8) {
+                Text(ex.name).font(.system(size: 28, weight: .bold))
+                if !ex.tips.isEmpty {
+                    Button { showTips = true } label: { Image(systemName: "info.circle").font(.system(size: 22)).foregroundStyle(Color.yolk).frame(width: 44, height: 44) }
+                }
+            }
             Text("Currently using \(fmt(ex.weightKg)) kg · \(ex.targetSets) × \(ex.targetReps)").font(.system(size: 15)).foregroundStyle(Color.textSecondary)
         }.frame(maxWidth: .infinity, alignment: .leading)
 
+        ExerciseArt(exercise: ex, height: 150, radius: 24)
         stepper(title: nil, value: "\(fmt(ex.weightKg))", unit: "kg", minus: { ex.weightKg = max(0, ex.weightKg - 1) }, plus: { ex.weightKg += 1 })
         stepper(title: "Reps", value: "\(reps)", unit: ex.isTimed ? "s" : "reps", minus: { reps = max(0, reps - 1) }, plus: { reps += 1 })
 
@@ -116,9 +126,6 @@ struct WorkoutView: View {
                 .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.yolk, lineWidth: isCurrent ? 1.5 : 0))
             }
         }
-        Spacer()
-        Button(step.circuit != nil ? "Complete round \(step.number)" : "Complete set \(step.number)") { complete(step: step, all: all) }
-            .buttonStyle(PrimaryButton())
     }
 
     private func stepper(title: String?, value: String, unit: String, minus: @escaping () -> Void, plus: @escaping () -> Void) -> some View {
@@ -137,6 +144,7 @@ struct WorkoutView: View {
         let log = SetLog(exerciseName: step.exercise.name, weightKg: step.exercise.weightKg, reps: reps, setNumber: step.number, circuitName: step.circuit)
         ctx.insert(log); s.sets.append(log)
         done[index] = reps
+        step.exercise.targetReps = reps          // remembered as the starting reps next time
         try? ctx.save()
         index += 1
         if index < all.count { reps = all[index].exercise.targetReps }

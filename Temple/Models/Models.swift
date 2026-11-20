@@ -12,7 +12,9 @@ enum MealSlot: String, Codable, CaseIterable { case breakfast = "Breakfast", lun
     var targetReps: Int
     var isTimed: Bool
     var illustration: String?
-    init(name: String, muscleGroup: String, equipment: String, weightKg: Double = 0, targetSets: Int = 3, targetReps: Int = 10, isTimed: Bool = false, illustration: String? = nil) {
+    var tips: [String] = []
+    init(name: String, muscleGroup: String, equipment: String, weightKg: Double = 0, targetSets: Int = 3, targetReps: Int = 0, isTimed: Bool = false, illustration: String? = nil, tips: [String] = []) {
+        self.tips = tips
         self.name = name; self.muscleGroup = muscleGroup; self.equipment = equipment; self.weightKg = weightKg
         self.targetSets = targetSets; self.targetReps = targetReps; self.isTimed = isTimed; self.illustration = illustration
     }

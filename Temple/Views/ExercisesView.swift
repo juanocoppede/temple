@@ -19,11 +19,10 @@ struct ExercisesView: View {
                         VStack(spacing: 0) {
                             ForEach(Array(filtered.enumerated()), id: \.element.persistentModelID) { i, ex in
                                 NavigationLink { ExerciseDetailView(exercise: ex) } label: { ExerciseRow(exercise: ex) }.buttonStyle(.plain)
-                                if i < filtered.count - 1 { Divider().overlay(Color.white.opacity(0.08)).padding(.leading, 86) }
+                                if i < filtered.count - 1 { Divider().overlay(Color.white.opacity(0.08)).padding(.leading, 70) }
                             }
                         }
-                        .background(Color.card, in: RoundedRectangle(cornerRadius: Radius.card))
-                        .padding(.horizontal, Space.margin).padding(.top, 8)
+                        .padding(.horizontal, Space.margin).padding(.top, 8).padding(.bottom, 24)
                     } header: {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 8) {
@@ -47,8 +46,7 @@ struct ExerciseRow: View {
     let exercise: Exercise
     var body: some View {
         HStack(spacing: 14) {
-            RoundedRectangle(cornerRadius: 14).fill(Color.raised).frame(width: 56, height: 56)
-                .overlay(Image(systemName: "figure.strengthtraining.traditional").foregroundStyle(Color.textSecondary))
+            ExerciseArt(exercise: exercise, side: 56)
             VStack(alignment: .leading, spacing: 2) {
                 Text(exercise.name).font(.system(size: 17, weight: .semibold)).lineLimit(1)
                 Text("\(exercise.muscleGroup) · \(exercise.equipment)").font(.system(size: 13)).foregroundStyle(Color.textSecondary)
@@ -62,6 +60,6 @@ struct ExerciseRow: View {
             }
         }
         .foregroundStyle(Color.textPrimary)
-        .padding(Space.inCard)
+        .padding(.vertical, 12)
     }
 }

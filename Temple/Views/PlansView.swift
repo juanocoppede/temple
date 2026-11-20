@@ -12,6 +12,12 @@ struct PlansView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
+                    if plans.isEmpty {
+                        VStack(spacing: 6) {
+                            Text("No plans yet").font(.system(size: 17, weight: .semibold))
+                            Text("Tap + to create your first plan, or start a free workout.").font(.system(size: 13)).foregroundStyle(Color.textSecondary).multilineTextAlignment(.center)
+                        }.foregroundStyle(Color.textPrimary).frame(maxWidth: .infinity).padding(.vertical, 32)
+                    }
                     ForEach(Array(plans.enumerated()), id: \.element.persistentModelID) { i, plan in
                         let count = plan.blocks.reduce(0) { $0 + $1.exerciseNames.count }
                         let circuits = plan.blocks.filter(\.isCircuit).count
