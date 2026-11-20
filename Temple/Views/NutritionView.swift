@@ -145,8 +145,7 @@ struct AddMealView: View {
                     TextField("Protein (g)", text: $protein).keyboardType(.decimalPad)
                 }
             }
-            .scrollDismissesKeyboard(.interactively)
-            .simultaneousGesture(TapGesture().onEnded { hideKeyboard() })
+            .scrollDismissesKeyboard(.immediately)      // dragging/scrolling the form closes the keyboard
             .scrollContentBackground(.hidden).background(Color.bg)
             .navigationTitle("Add to \(slot.rawValue)").navigationBarTitleDisplayMode(.inline)
             .fullScreenCover(isPresented: $showCamera) { CameraPicker { image = $0 }.ignoresSafeArea() }
