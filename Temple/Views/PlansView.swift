@@ -53,37 +53,59 @@ struct PlansView: View {
         .fullScreenCover(isPresented: Binding(get: { freeBlocks != nil }, set: { if !$0 { freeBlocks = nil } })) {
             WorkoutView(planName: "Free workout", blocks: freeBlocks ?? [])
         }
-        .sheet(isPresented: $showPicker) { FreeWorkoutPicker { names in freeBlocks = names.map { WorkoutBlock(isCircuit: false, circuitName: nil, names: [$0]) } } }
+        .sheet(isPresented: $showPicker) { FreeWorkoutPicker { freeBlocks = $0 } }
     }
 }
 
+/// Builds a free workout out of single exercises and supersets/circuits (exercises done back to back, then rest, repeated for N rounds).
 struct FreeWorkoutPicker: View {
-    let onStart: ([String]) -> Void
+    let onStart: ([WorkoutBlock]) -> Void
     @Environment(\.dismiss) private var dismiss
     @Query(sort: \Exercise.name) private var exercises: [Exercise]
-    @State private var chosen: [String] = []     // keeps tap order
+
+    struct Item: Identifiable { let id = UUID(); var isGroup: Bool; var names: [String]; var rounds = 3 }
+    @State private var items: [Item] = []
+
+    private var valid: [Item] { items.filter { !$0.names.isEmpty } }
 
     var body: some View {
         NavigationStack {
-            List(exercises) { ex in
-                Button {
-                    if let i = chosen.firstIndex(of: ex.name) { chosen.remove(at: i) } else { chosen.append(ex.name) }
-                } label: {
-                    HStack {
-                        Text(ex.name).foregroundStyle(Color.textPrimary)
-                        Spacer()
-                        if let i = chosen.firstIndex(of: ex.name) { Text("\(i + 1)").foregroundStyle(Color.yolk).fontWeight(.semibold) }
-                    }
+            List {
+                ForEach($items) { $item in
+                    Section {
+                        ForEach(item.names, id: \.self) { Text($0) }
+                            .onDelete { item.names.remove(atOffsets: $0); if item.names.isEmpty { items.removeAll { $0.id == item.id } } }
+                            .onMove { item.names.move(fromOffsets: $0, toOffset: $1) }
+                        if item.isGroup {
+                            Menu("Add exercise to superset") { picker { item.names.append($0) } }
+                            Stepper("Rounds: \(item.rounds)", value: $item.rounds, in: 1...10)
+                            Button("Remove superset", role: .destructive) { items.removeAll { $0.id == item.id } }
+                        }
+                    } header: { Text(item.isGroup ? "Superset · \(item.rounds) rounds" : "Single exercise · sets back to back") }
+                }
+                Section {
+                    Menu("Add exercise") { picker { items.append(Item(isGroup: false, names: [$0])) } }
+                    Button("Add superset / circuit") { items.append(Item(isGroup: true, names: [])) }
+                } footer: {
+                    Text("In a superset you do each exercise one after the other, rest, and repeat for the number of rounds.")
                 }
             }
+            .environment(\.editMode, .constant(.active))
             .scrollContentBackground(.hidden).background(Color.bg)
-            .navigationTitle("Pick exercises").navigationBarTitleDisplayMode(.inline)
+            .navigationTitle("Free workout").navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Start") { let n = chosen; dismiss(); onStart(n) }.disabled(chosen.isEmpty)
+                    Button("Start") {
+                        let blocks = valid.map { WorkoutBlock(isCircuit: $0.isGroup, circuitName: $0.isGroup ? "Superset" : nil, names: $0.names, rounds: $0.rounds) }
+                        dismiss(); onStart(blocks)
+                    }.disabled(valid.isEmpty)
                 }
             }
         }.tint(Color.yolk)
+    }
+
+    @ViewBuilder private func picker(_ pick: @escaping (String) -> Void) -> some View {
+        ForEach(exercises) { ex in Button(ex.name) { pick(ex.name) } }
     }
 }

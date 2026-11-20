@@ -14,6 +14,7 @@ struct WorkoutBlock {
     let isCircuit: Bool
     let circuitName: String?
     let names: [String]
+    var rounds: Int = PlanBlock.circuitRounds
 }
 
 extension Plan {
@@ -41,8 +42,8 @@ struct WorkoutView: View {
         for (bi, block) in blocks.enumerated() {
             let exs = block.names.compactMap { byName[$0] }
             if block.isCircuit {
-                for round in 1...PlanBlock.circuitRounds {
-                    for ex in exs { out.append(WorkoutStep(exercise: ex, number: round, total: PlanBlock.circuitRounds, blockIndex: bi, circuit: block.circuitName ?? "Circuit", circuitOrder: exs.map(\.name))) }
+                for round in 1...max(block.rounds, 1) {
+                    for ex in exs { out.append(WorkoutStep(exercise: ex, number: round, total: max(block.rounds, 1), blockIndex: bi, circuit: block.circuitName ?? "Circuit", circuitOrder: exs.map(\.name))) }
                 }
             } else {
                 for ex in exs { for s in 1...max(ex.targetSets, 1) { out.append(WorkoutStep(exercise: ex, number: s, total: max(ex.targetSets, 1), blockIndex: bi, circuit: nil, circuitOrder: [])) } }
