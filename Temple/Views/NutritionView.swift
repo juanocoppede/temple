@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import PhotosUI
+import UniformTypeIdentifiers
 
 struct Ring: View {
     let title: String; let value: Double; let target: Double; let unit: String
@@ -99,9 +100,25 @@ struct SettingsView: View {
     @AppStorage("proxyURL") private var proxyURL = ""
     @AppStorage("proxySecret") private var proxySecret = ""
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var ctx
+    @AppStorage("backupLastDate") private var lastBackup: Double = 0
+    @State private var pickFolder = false
+    @State private var backupMsg: String?
+    private var lastText: String {
+        guard let d = UserDefaults.standard.object(forKey: "backupLastDate") as? Date else { return "No backup yet" }
+        return "Last backup: " + d.formatted(date: .abbreviated, time: .shortened)
+    }
     var body: some View {
         NavigationStack {
             Form {
+                Section {
+                    Text(lastText).foregroundStyle(Color.textSecondary)
+                    Button("Back up now") { backupMsg = Backup.run(ctx) ? "Backup saved." : "Couldn't save the backup." }
+                    Button("Choose backup folder") { pickFolder = true }
+                    if let backupMsg { Text(backupMsg).font(.footnote).foregroundStyle(Color.textSecondary) }
+                } header: { Text("Daily backup") } footer: {
+                    Text("A backup file is saved automatically the first time you open Temple each day (last 14 kept). Pick a folder in iCloud Drive to keep it outside the phone; otherwise it goes to Temple's folder in the Files app.")
+                }
                 Section("AI proxy") {
                     TextField("https://temple-ai.you.workers.dev", text: $proxyURL).textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(.URL)
                     SecureField("App secret", text: $proxySecret)
@@ -109,6 +126,9 @@ struct SettingsView: View {
             }
             .scrollDismissesKeyboard(.interactively)
             .scrollContentBackground(.hidden).background(Color.bg)
+            .fileImporter(isPresented: $pickFolder, allowedContentTypes: [.folder]) { r in
+                if case .success(let url) = r { Backup.setFolder(url); backupMsg = Backup.run(ctx) ? "Folder set. Backup saved." : "Couldn't write to that folder." }
+            }
             .navigationTitle("Settings").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
         }.tint(Color.yolk)

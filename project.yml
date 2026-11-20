@@ -22,6 +22,8 @@ targets:
         INFOPLIST_KEY_NSCameraUsageDescription: "Take a photo of your meal to estimate calories and protein."
         INFOPLIST_KEY_NSMicrophoneUsageDescription: "Describe your meal by voice."
         INFOPLIST_KEY_NSSpeechRecognitionUsageDescription: "Turn your voice into meal text."
+        INFOPLIST_KEY_UIFileSharingEnabled: YES
+        INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace: YES
         GENERATE_INFOPLIST_FILE: YES
         MARKETING_VERSION: "1.0"
         CURRENT_PROJECT_VERSION: "1"

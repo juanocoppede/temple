@@ -23,6 +23,7 @@ enum AppTab: String, CaseIterable {
 
 struct RootView: View {
     @Environment(\.modelContext) private var ctx
+    @Environment(\.scenePhase) private var phase
     @State private var tab: AppTab = .exercises
 
     var body: some View {
@@ -36,7 +37,8 @@ struct RootView: View {
             FloatingTabBar(selection: $tab)
         }
         .background(Color.bg.ignoresSafeArea())
-        .onAppear { Seed.run(ctx) }
+        .onAppear { Seed.run(ctx); Backup.runDailyIfNeeded(ctx) }
+        .onChange(of: phase) { _, p in if p == .active { Backup.runDailyIfNeeded(ctx) } }
     }
 }
 
