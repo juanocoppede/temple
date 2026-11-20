@@ -35,7 +35,10 @@ struct MonthGrid: View {
                         let isMarked = marked.contains(cal.startOfDay(for: d))
                         let isToday = cal.isDateInToday(d)
                         Button { onSelect?(d) } label: {
-                            Text("\(cal.component(.day, from: d))").font(.system(size: 15, weight: isMarked ? .semibold : .regular)).monospacedDigit()
+                            Group {
+                                if isMarked { Image(systemName: "checkmark").font(.system(size: 15, weight: .bold)) }
+                                else { Text("\(cal.component(.day, from: d))").font(.system(size: 15, weight: .regular)).monospacedDigit() }
+                            }
                                 .foregroundStyle(isMarked ? Color.yolkInk : Color.textPrimary)
                                 .frame(width: 36, height: 36)
                                 .background(isMarked ? Color.yolk : Color.clear, in: Circle())
