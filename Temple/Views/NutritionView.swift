@@ -74,10 +74,19 @@ struct NutritionView: View {
                             if items.isEmpty { Text("—").foregroundStyle(Color.textSecondary) }
                             ForEach(items) { m in
                                 HStack {
-                                    Text(m.name).font(.system(size: 15, weight: .semibold))
+                                    Text(m.name).font(.system(size: 15, weight: .semibold)).foregroundStyle(Color.textSecondary)
                                     Spacer()
-                                    Text("\(fmt(m.kcal)) kcal").font(.system(size: 15, weight: .semibold)).monospacedDigit().frame(width: 84, alignment: .trailing)
-                                    Text("\(fmt(m.proteinG)) g").font(.system(size: 15, weight: .semibold)).monospacedDigit().frame(width: 52, alignment: .trailing)
+                                    Text("\(fmt(m.kcal)) kcal").font(.system(size: 15, weight: .medium)).monospacedDigit().frame(width: 84, alignment: .trailing)
+                                    Text("\(fmt(m.proteinG)) g").font(.system(size: 15, weight: .medium)).monospacedDigit().frame(width: 52, alignment: .trailing)
+                                }
+                            }
+                            if !items.isEmpty {
+                                Divider().overlay(Color.white.opacity(0.1))
+                                HStack {
+                                    Text("Total").font(.system(size: 15, weight: .bold))
+                                    Spacer()
+                                    Text("\(fmt(items.reduce(0) { $0 + $1.kcal })) kcal").font(.system(size: 15, weight: .bold)).monospacedDigit().frame(width: 84, alignment: .trailing)
+                                    Text("\(fmt(items.reduce(0) { $0 + $1.proteinG })) g").font(.system(size: 15, weight: .bold)).monospacedDigit().frame(width: 52, alignment: .trailing)
                                 }
                             }
                         }.frame(maxWidth: .infinity, alignment: .leading)
