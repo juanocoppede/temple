@@ -22,7 +22,28 @@ struct CalendarView: View {
     }
 }
 
+/// Day view: swipe left/right to move to the next/previous day.
 struct DayDetailView: View {
+    @State var date: Date
+    @State private var forward = true
+    init(date: Date) { _date = State(initialValue: date) }
+
+    var body: some View {
+        DayContent(date: date)
+            .id(date)
+            .transition(.asymmetric(insertion: .move(edge: forward ? .trailing : .leading), removal: .move(edge: forward ? .leading : .trailing)).combined(with: .opacity))
+            .contentShape(Rectangle())
+            .simultaneousGesture(DragGesture(minimumDistance: 30).onEnded { v in
+                guard abs(v.translation.width) > 60, abs(v.translation.width) > abs(v.translation.height) * 1.5 else { return }
+                let step = v.translation.width < 0 ? 1 : -1
+                forward = step > 0
+                withAnimation(.easeInOut(duration: 0.25)) { date = Calendar.current.date(byAdding: .day, value: step, to: date) ?? date }
+            })
+            .clipped()
+    }
+}
+
+struct DayContent: View {
     let date: Date
     @Query private var sets: [SetLog]
     @Query private var meals: [MealEntry]

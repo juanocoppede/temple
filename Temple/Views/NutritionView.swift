@@ -20,6 +20,26 @@ struct Ring: View {
     }
 }
 
+struct ProgressBar: View {
+    let title: String; let value: Double; let target: Double; let unit: String
+    private var progress: Double { target > 0 ? min(value / target, 1) : 0 }
+    var body: some View {
+        VStack(spacing: 6) {
+            HStack {
+                Text(title).font(.system(size: 13, weight: .semibold))
+                Spacer()
+                Text("\(fmt(value.rounded())) / \(fmt(target)) \(unit)").font(.system(size: 13)).foregroundStyle(Color.textSecondary).monospacedDigit()
+            }
+            GeometryReader { g in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Color.raised)
+                    Capsule().fill(Color.yolk).frame(width: max(progress > 0 ? 8 : 0, g.size.width * progress))
+                }
+            }.frame(height: 8)
+        }
+    }
+}
+
 struct NutritionView: View {
     @Query private var meals: [MealEntry]
     @Query private var targets: [Targets]
@@ -38,9 +58,15 @@ struct NutritionView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 24) {
-                    HStack(spacing: 12) {
-                        Ring(title: "Calories", value: meals.reduce(0) { $0 + $1.kcal }, target: t.kcal, unit: "kcal")
-                        Ring(title: "Protein", value: meals.reduce(0) { $0 + $1.proteinG }, target: t.proteinG, unit: "g")
+                    VStack(spacing: 20) {
+                        HStack(spacing: 12) {
+                            Ring(title: "Calories", value: meals.reduce(0) { $0 + $1.kcal }, target: t.kcal, unit: "kcal")
+                            Ring(title: "Protein", value: meals.reduce(0) { $0 + $1.proteinG }, target: t.proteinG, unit: "g")
+                        }
+                        VStack(spacing: 14) {
+                            ProgressBar(title: "Calories", value: meals.reduce(0) { $0 + $1.kcal }, target: t.kcal, unit: "kcal")
+                            ProgressBar(title: "Protein", value: meals.reduce(0) { $0 + $1.proteinG }, target: t.proteinG, unit: "g")
+                        }
                     }.card()
                     ForEach(MealSlot.allCases, id: \.self) { slot in
                         let items = meals.filter { $0.slot == slot }
