@@ -18,13 +18,20 @@ export default {
     const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
       method: "POST",
       headers: { "content-type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
-      body: JSON.stringify({ contents: [{ parts }], generationConfig: { responseMimeType: "application/json", temperature: 0.2 } }),
+      body: JSON.stringify({ contents: [{ parts }], generationConfig: { responseMimeType: "application/json", temperature: 0.2, maxOutputTokens: 4096 } }),
     });
     if (!r.ok) return new Response(`Gemini error ${r.status}: ${(await r.text()).slice(0, 250)}`, { status: 502 });
     const data = await r.json();
-    const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '{"items":[]}';
+    // Newer Gemini models may return several parts (thoughts, fenced code): join the text parts and pull out the JSON object.
+    const raw = (data?.candidates?.[0]?.content?.parts ?? []).filter(p => !p.thought && typeof p.text === "string").map(p => p.text).join("");
     let parsed;
-    try { parsed = JSON.parse(raw); } catch { return new Response("Model returned invalid JSON", { status: 502 }); }
+    try {
+      const m = raw.match(/\{[\s\S]*\}/);
+      parsed = JSON.parse(m ? m[0] : raw);
+    } catch {
+      const why = data?.candidates?.[0]?.finishReason || data?.promptFeedback?.blockReason || "unknown";
+      return new Response(`Model returned invalid JSON (finish: ${why}): ${raw.slice(0, 200)}`, { status: 502 });
+    }
     return new Response(JSON.stringify({ items: Array.isArray(parsed.items) ? parsed.items : [] }), { headers: { "content-type": "application/json" } });
   },
 };
