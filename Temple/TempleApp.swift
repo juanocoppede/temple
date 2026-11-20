@@ -26,15 +26,18 @@ struct RootView: View {
     @State private var tab: AppTab = .exercises
 
     var body: some View {
-        ZStack(alignment: .bottom) {
+        ZStack {
             ZStack {
                 ExercisesView().opacity(tab == .exercises ? 1 : 0).allowsHitTesting(tab == .exercises)
                 PlansView().opacity(tab == .plans ? 1 : 0).allowsHitTesting(tab == .plans)
                 NutritionView().opacity(tab == .nutrition ? 1 : 0).allowsHitTesting(tab == .nutrition)
                 CalendarView().opacity(tab == .calendar ? 1 : 0).allowsHitTesting(tab == .calendar)
             }
-            .safeAreaPadding(.bottom, 120)       // lists end well above the floating bar
-            FloatingTabBar(selection: $tab)
+        }
+        // The bar is a bottom safe-area inset, so every list/scroll view stops above it automatically.
+        // The 28 pt of clear space above the bar is part of the inset: lists get room to breathe at the end.
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            FloatingTabBar(selection: $tab).padding(.top, 28)
         }
         .background(Color.bg.ignoresSafeArea())
         .onAppear { Seed.run(ctx) }
@@ -65,8 +68,7 @@ struct FloatingTabBar: View {
         .overlay(RoundedRectangle(cornerRadius: 28).stroke(Color.white.opacity(0.16), lineWidth: 1))
         .shadow(color: .black.opacity(0.5), radius: 12, y: 8)
         .padding(.horizontal, Space.margin)
-        .padding(.bottom, 20)
-        .ignoresSafeArea(edges: .bottom)
+        .padding(.bottom, 6)             // sits just above the iPhone's home-indicator zone
     }
 }
 
