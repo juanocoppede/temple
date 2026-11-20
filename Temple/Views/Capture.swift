@@ -35,6 +35,7 @@ struct CameraPicker: UIViewControllerRepresentable {
     private let engine = AVAudioEngine()
     private var request: SFSpeechAudioBufferRecognitionRequest?
     private var task: SFSpeechRecognitionTask?
+    private var silenceTimer: Timer?
 
     func toggle() { listening ? stop() : start() }
 
@@ -63,20 +64,30 @@ struct CameraPicker: UIViewControllerRepresentable {
         engine.prepare()
         try? engine.start()
         listening = true
+        armSilenceTimer()
         task = recognizer.recognitionTask(with: req) { [weak self] result, error in
             Task { @MainActor in
-                if let result { self?.text = result.bestTranscription.formattedString }
+                if let result { self?.text = result.bestTranscription.formattedString; self?.armSilenceTimer() }
                 if error != nil || result?.isFinal == true { self?.stop() }
             }
         }
     }
 
+    /// Stops by itself after ~2 s without new words.
+    private func armSilenceTimer() {
+        silenceTimer?.invalidate()
+        silenceTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { [weak self] _ in
+            Task { @MainActor in self?.stop() }
+        }
+    }
+
     func stop() {
-        guard listening else { return }
-        engine.stop()
-        engine.inputNode.removeTap(onBus: 0)
-        request?.endAudio()
-        task?.cancel()
+        silenceTimer?.invalidate(); silenceTimer = nil
         listening = false
+        if engine.isRunning { engine.stop() }
+        engine.inputNode.removeTap(onBus: 0)
+        request?.endAudio(); request = nil
+        task?.cancel(); task = nil
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
     }
 }

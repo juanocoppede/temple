@@ -129,11 +129,11 @@ struct AddMealView: View {
                         ForEach($items) { $item in
                             VStack(alignment: .leading, spacing: 8) {
                                 TextField("Food", text: $item.name).font(.headline)
-                                HStack {
-                                    TextField("g", value: $item.grams, format: .number).keyboardType(.decimalPad)
-                                    TextField("kcal", value: $item.kcal, format: .number).keyboardType(.decimalPad)
-                                    TextField("protein g", value: $item.proteinG, format: .number).keyboardType(.decimalPad)
-                                }.font(.subheadline).foregroundStyle(Color.textSecondary)
+                                HStack(spacing: 16) {
+                                    labeled("Grams") { TextField("g", value: $item.grams, format: .number).keyboardType(.decimalPad) }
+                                    labeled("Calories") { TextField("kcal", value: $item.kcal, format: .number).keyboardType(.decimalPad) }
+                                    labeled("Protein (g)") { TextField("g", value: $item.proteinG, format: .number).keyboardType(.decimalPad) }
+                                }.font(.subheadline)
                             }
                         }.onDelete { items.remove(atOffsets: $0) }
                     }
@@ -149,6 +149,7 @@ struct AddMealView: View {
             .scrollContentBackground(.hidden).background(Color.bg)
             .navigationTitle("Add to \(slot.rawValue)").navigationBarTitleDisplayMode(.inline)
             .fullScreenCover(isPresented: $showCamera) { CameraPicker { image = $0 }.ignoresSafeArea() }
+            .onDisappear { dictation.stop() }
             .onChange(of: dictation.text) { _, t in aiText = t }
             .onChange(of: pick) { _, new in
                 Task { if let d = try? await new?.loadTransferable(type: Data.self), let img = UIImage(data: d) { image = img } }
@@ -164,7 +165,15 @@ struct AddMealView: View {
         .tint(Color.yolk)
     }
 
+    private func labeled<C: View>(_ title: String, @ViewBuilder _ field: () -> C) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(title).font(.caption).foregroundStyle(Color.textSecondary)
+            field().foregroundStyle(Color.textPrimary)
+        }
+    }
+
     private func analyze() async {
+        dictation.stop()
         busy = true; error = nil
         defer { busy = false }
         do {
