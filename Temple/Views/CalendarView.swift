@@ -47,6 +47,8 @@ struct DayContent: View {
     let date: Date
     @Query private var sets: [SetLog]
     @Query private var meals: [MealEntry]
+    @Query private var targets: [Targets]
+    private var t: Targets { targets.first ?? Targets() }
 
     init(date: Date) {
         self.date = date
@@ -77,6 +79,10 @@ struct DayContent: View {
                     }
                 }
                 section("Nutrition", detail: meals.isEmpty ? nil : "\(fmt(meals.reduce(0) { $0 + $1.kcal })) kcal · \(fmt(meals.reduce(0) { $0 + $1.proteinG })) g") {
+                    VStack(spacing: 14) {
+                        ProgressBar(title: "Calories", value: meals.reduce(0) { $0 + $1.kcal }, target: t.kcal, unit: "kcal")
+                        ProgressBar(title: "Protein", value: meals.reduce(0) { $0 + $1.proteinG }, target: t.proteinG, unit: "g")
+                    }
                     if meals.isEmpty { Text("Nothing logged").foregroundStyle(Color.textSecondary) }
                     ForEach(MealSlot.allCases, id: \.self) { slot in
                         let items = meals.filter { $0.slot == slot }

@@ -58,15 +58,9 @@ struct NutritionView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 24) {
-                    VStack(spacing: 20) {
-                        HStack(spacing: 12) {
-                            Ring(title: "Calories", value: meals.reduce(0) { $0 + $1.kcal }, target: t.kcal, unit: "kcal")
-                            Ring(title: "Protein", value: meals.reduce(0) { $0 + $1.proteinG }, target: t.proteinG, unit: "g")
-                        }
-                        VStack(spacing: 14) {
-                            ProgressBar(title: "Calories", value: meals.reduce(0) { $0 + $1.kcal }, target: t.kcal, unit: "kcal")
-                            ProgressBar(title: "Protein", value: meals.reduce(0) { $0 + $1.proteinG }, target: t.proteinG, unit: "g")
-                        }
+                    HStack(spacing: 12) {
+                        Ring(title: "Calories", value: meals.reduce(0) { $0 + $1.kcal }, target: t.kcal, unit: "kcal")
+                        Ring(title: "Protein", value: meals.reduce(0) { $0 + $1.proteinG }, target: t.proteinG, unit: "g")
                     }.card()
                     ForEach(MealSlot.allCases, id: \.self) { slot in
                         let items = meals.filter { $0.slot == slot }
