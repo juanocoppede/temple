@@ -33,7 +33,7 @@ enum AIService {
         req.setValue("application/json", forHTTPHeaderField: "content-type")
         if let secret = UserDefaults.standard.string(forKey: "proxySecret"), !secret.isEmpty { req.setValue(secret, forHTTPHeaderField: "x-app-secret") }
         req.httpBody = try JSONSerialization.data(withJSONObject: payload)
-        req.timeoutInterval = 40
+        req.timeoutInterval = 90
         let (data, resp) = try await URLSession.shared.data(for: req)
         let code = (resp as? HTTPURLResponse)?.statusCode ?? 0
         guard code == 200 else {
