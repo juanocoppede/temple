@@ -23,6 +23,10 @@ enum Seed {
                 ctx.insert(Exercise(name: e.name, muscleGroup: e.group, equipment: e.equipment, isTimed: e.timed, illustration: e.art, tips: e.tips))
             }
         }
+        // Remove stale library exercises (old names) that have no history.
+        let names = Set(Library.all.map(\.name))
+        let logged = Set(((try? ctx.fetch(FetchDescriptor<SetLog>())) ?? []).map(\.exerciseName))
+        for ex in existing where !names.contains(ex.name) && !logged.contains(ex.name) { ctx.delete(ex) }
         if ((try? ctx.fetchCount(FetchDescriptor<Targets>())) ?? 0) == 0 { ctx.insert(Targets()) }
         try? ctx.save()
     }

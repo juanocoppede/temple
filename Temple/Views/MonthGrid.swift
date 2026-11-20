@@ -45,6 +45,11 @@ struct MonthGrid: View {
                 }
             }
         }
+        .contentShape(Rectangle())
+        .simultaneousGesture(DragGesture(minimumDistance: 30).onEnded { v in
+            guard abs(v.translation.width) > 50, abs(v.translation.width) > abs(v.translation.height) * 1.5 else { return }
+            withAnimation(.easeInOut(duration: 0.2)) { shift(v.translation.width < 0 ? 1 : -1) }
+        })
     }
     private func shift(_ n: Int) { month = cal.date(byAdding: .month, value: n, to: first) ?? month }
 }
