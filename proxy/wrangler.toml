@@ -2,3 +2,6 @@ name = "temple-ai"
 main = "worker.js"
 compatibility_date = "2025-01-01"
 # Secrets (never commit them):  wrangler secret put GEMINI_API_KEY   and   wrangler secret put APP_SECRET
+
+[vars]
+MODEL = "gemini-3.6-flash"
