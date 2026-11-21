@@ -42,13 +42,22 @@ struct ProgressBar: View {
 }
 
 struct NutritionView: View {
+    @Environment(\.scenePhase) private var phase
+    @State private var day = Calendar.current.startOfDay(for: .now)
+    var body: some View {
+        NutritionContent(day: day).id(day)
+            .onChange(of: phase) { _, p in if p == .active { day = Calendar.current.startOfDay(for: .now) } }
+    }
+}
+
+struct NutritionContent: View {
     @Query private var meals: [MealEntry]
     @Query private var targets: [Targets]
     @State private var addingTo: MealSlot?
     @State private var showSettings = false
 
-    init() {
-        let start = Calendar.current.startOfDay(for: .now)
+    init(day: Date) {
+        let start = Calendar.current.startOfDay(for: day)
         let end = Calendar.current.date(byAdding: .day, value: 1, to: start) ?? start
         _meals = Query(filter: #Predicate<MealEntry> { $0.date >= start && $0.date < end }, sort: \.date)
     }
@@ -146,6 +155,7 @@ struct SettingsView: View {
 
 struct AddMealView: View {
     let slot: MealSlot
+    var date: Date = .now
     @Environment(\.modelContext) private var ctx
     @Environment(\.dismiss) private var dismiss
     @StateObject private var dictation = Dictation()
@@ -232,9 +242,9 @@ struct AddMealView: View {
     }
 
     private func save() {
-        for i in items { ctx.insert(MealEntry(slot: slot, name: i.name, grams: i.grams, kcal: i.kcal, proteinG: i.proteinG)) }
+        for i in items { ctx.insert(MealEntry(date: entryDate(for: date), slot: slot, name: i.name, grams: i.grams, kcal: i.kcal, proteinG: i.proteinG)) }
         if !kcal.isEmpty || !protein.isEmpty {
-            ctx.insert(MealEntry(slot: slot, name: name.isEmpty ? slot.rawValue : name, grams: num(grams), kcal: num(kcal), proteinG: num(protein)))
+            ctx.insert(MealEntry(date: entryDate(for: date), slot: slot, name: name.isEmpty ? slot.rawValue : name, grams: num(grams), kcal: num(kcal), proteinG: num(protein)))
         }
         image = nil      // photos are never stored
         try? ctx.save(); dismiss()

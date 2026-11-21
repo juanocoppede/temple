@@ -43,11 +43,24 @@ struct DayDetailView: View {
     }
 }
 
+/// Date to store for an entry added to `day`: now if it is today, otherwise midday of that day.
+func entryDate(for day: Date) -> Date {
+    let cal = Calendar.current
+    if cal.isDateInToday(day) { return .now }
+    return cal.date(bySettingHour: 12, minute: 0, second: 0, of: day) ?? day
+}
+
+struct ExerciseTarget: Identifiable { let id = UUID(); let name: String? }
+
 struct DayContent: View {
     let date: Date
+    @Environment(\.modelContext) private var ctx
     @Query private var sets: [SetLog]
     @Query private var meals: [MealEntry]
     @Query private var targets: [Targets]
+    @State private var addingSlot: MealSlot?
+    @State private var editingMeal: MealEntry?
+    @State private var editingExercise: ExerciseTarget?
     private var t: Targets { targets.first ?? Targets() }
 
     init(date: Date) {
@@ -71,26 +84,52 @@ struct DayContent: View {
                 section("Workout", detail: grouped.isEmpty ? nil : "\(grouped.count) exercises") {
                     if grouped.isEmpty { Text("No workout").foregroundStyle(Color.textSecondary) }
                     ForEach(grouped, id: \.name) { g in
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(g.name).font(.system(size: 15, weight: .semibold))
-                            Text("\(g.weight == 0 ? "BW" : fmt(g.weight) + " kg") × " + g.reps.map(String.init).joined(separator: ", "))
-                                .font(.system(size: 13)).foregroundStyle(Color.textSecondary).monospacedDigit()
-                        }
+                        Button { editingExercise = ExerciseTarget(name: g.name) } label: {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(g.name).font(.system(size: 15, weight: .semibold))
+                                    Text("\(g.weight == 0 ? "BW" : fmt(g.weight) + " kg") × " + g.reps.map(String.init).joined(separator: ", "))
+                                        .font(.system(size: 13)).foregroundStyle(Color.textSecondary).monospacedDigit()
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold)).foregroundStyle(Color.textSecondary)
+                            }.contentShape(Rectangle())
+                        }.buttonStyle(.plain)
                     }
+                    Button { editingExercise = ExerciseTarget(name: nil) } label: { Label("Add exercise", systemImage: "plus") }
+                        .font(.system(size: 15, weight: .semibold)).foregroundStyle(Color.yolk)
                 }
                 section("Nutrition", detail: meals.isEmpty ? nil : "\(fmt(meals.reduce(0) { $0 + $1.kcal })) kcal · \(fmt(meals.reduce(0) { $0 + $1.proteinG })) g") {
                     VStack(spacing: 14) {
                         ProgressBar(title: "Calories", value: meals.reduce(0) { $0 + $1.kcal }, target: t.kcal, unit: "kcal")
                         ProgressBar(title: "Protein", value: meals.reduce(0) { $0 + $1.proteinG }, target: t.proteinG, unit: "g")
                     }
-                    if meals.isEmpty { Text("Nothing logged").foregroundStyle(Color.textSecondary) }
                     ForEach(MealSlot.allCases, id: \.self) { slot in
                         let items = meals.filter { $0.slot == slot }
-                        if !items.isEmpty {
-                            VStack(alignment: .leading, spacing: 2) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
                                 Text(slot.rawValue).font(.system(size: 15, weight: .semibold))
-                                Text("\(fmt(items.reduce(0) { $0 + $1.kcal })) kcal · \(fmt(items.reduce(0) { $0 + $1.proteinG })) g")
-                                    .font(.system(size: 13)).foregroundStyle(Color.textSecondary).monospacedDigit()
+                                Spacer()
+                                Button("Add") { addingSlot = slot }.font(.system(size: 15, weight: .semibold)).foregroundStyle(Color.yolk).frame(minWidth: 44, minHeight: 32)
+                            }
+                            ForEach(items) { m in
+                                Button { editingMeal = m } label: {
+                                    HStack {
+                                        Text(m.name).font(.system(size: 15, weight: .semibold)).foregroundStyle(Color.textSecondary)
+                                        Spacer()
+                                        Text("\(fmt(m.kcal)) kcal").font(.system(size: 13)).monospacedDigit()
+                                        Text("\(fmt(m.proteinG)) g").font(.system(size: 13)).monospacedDigit().frame(width: 52, alignment: .trailing)
+                                    }.contentShape(Rectangle())
+                                }.buttonStyle(.plain)
+                            }
+                            if !items.isEmpty {
+                                Divider().overlay(Color.white.opacity(0.1))
+                                HStack {
+                                    Text("Total").font(.system(size: 13, weight: .bold))
+                                    Spacer()
+                                    Text("\(fmt(items.reduce(0) { $0 + $1.kcal })) kcal").font(.system(size: 13, weight: .bold)).monospacedDigit()
+                                    Text("\(fmt(items.reduce(0) { $0 + $1.proteinG })) g").font(.system(size: 13, weight: .bold)).monospacedDigit().frame(width: 52, alignment: .trailing)
+                                }
                             }
                         }
                     }
@@ -99,6 +138,9 @@ struct DayContent: View {
         }
         .contentMargins(.bottom, Space.tabBarClearance, for: .scrollContent)
         .background(Color.bg).navigationBarTitleDisplayMode(.inline)
+        .sheet(item: $addingSlot) { AddMealView(slot: $0, date: date) }
+        .sheet(item: $editingMeal) { EditMealView(meal: $0) }
+        .sheet(item: $editingExercise) { DayExerciseEditor(date: date, target: $0) }
     }
 
     private func section<C: View>(_ title: String, detail: String?, @ViewBuilder content: () -> C) -> some View {
@@ -110,5 +152,95 @@ struct DayContent: View {
             }
             VStack(alignment: .leading, spacing: 16) { content() }
         }
+    }
+}
+
+struct EditMealView: View {
+    @Bindable var meal: MealEntry
+    @Environment(\.modelContext) private var ctx
+    @Environment(\.dismiss) private var dismiss
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Meal") {
+                    TextField("Food", text: $meal.name)
+                    TextField("Grams", value: $meal.grams, format: .number).keyboardType(.decimalPad)
+                    TextField("Calories (kcal)", value: $meal.kcal, format: .number).keyboardType(.decimalPad)
+                    TextField("Protein (g)", value: $meal.proteinG, format: .number).keyboardType(.decimalPad)
+                }
+                Section { Button("Delete", role: .destructive) { ctx.delete(meal); try? ctx.save(); dismiss() } }
+            }
+            .scrollDismissesKeyboard(.immediately)
+            .scrollContentBackground(.hidden).background(Color.bg)
+            .navigationTitle("Edit meal").navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { try? ctx.save(); dismiss() } } }
+        }.tint(Color.yolk)
+    }
+}
+
+/// Add or edit one exercise's sets for a given day (weight + reps per set).
+struct DayExerciseEditor: View {
+    let date: Date
+    let target: ExerciseTarget
+    @Environment(\.modelContext) private var ctx
+    @Environment(\.dismiss) private var dismiss
+    @Query(sort: \Exercise.name) private var exercises: [Exercise]
+    @State private var name = ""
+    @State private var weight: Double = 0
+    @State private var reps: [Int] = [10]
+    @State private var existing = false
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Exercise") {
+                    if target.name == nil {
+                        Picker("Exercise", selection: $name) {
+                            Text("Choose…").tag("")
+                            ForEach(exercises) { Text($0.name).tag($0.name) }
+                        }
+                    } else { Text(name) }
+                }
+                Section("Weight (kg, 0 = bodyweight)") { TextField("0", value: $weight, format: .number).keyboardType(.decimalPad) }
+                Section("Sets") {
+                    ForEach(reps.indices, id: \.self) { i in
+                        Stepper("Set \(i + 1): \(reps[i])", value: $reps[i], in: 0...300)
+                    }.onDelete { reps.remove(atOffsets: $0) }
+                    Button("Add set") { reps.append(reps.last ?? 10) }
+                }
+                if existing { Section { Button("Remove from this day", role: .destructive) { removeLogs(); try? ctx.save(); dismiss() } } }
+            }
+            .scrollDismissesKeyboard(.immediately)
+            .scrollContentBackground(.hidden).background(Color.bg)
+            .navigationTitle(target.name == nil ? "Add exercise" : "Edit exercise").navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) { Button("Save") { save() }.disabled(name.isEmpty || reps.isEmpty) }
+            }
+            .onAppear { load() }
+            .onChange(of: name) { _, n in
+                if target.name == nil, let ex = exercises.first(where: { $0.name == n }) { weight = ex.weightKg }
+            }
+        }.tint(Color.yolk)
+    }
+
+    private func logs(for n: String) -> [SetLog] {
+        let start = Calendar.current.startOfDay(for: date)
+        let end = Calendar.current.date(byAdding: .day, value: 1, to: start) ?? start
+        let d = FetchDescriptor<SetLog>(predicate: #Predicate { $0.date >= start && $0.date < end && $0.exerciseName == n }, sortBy: [SortDescriptor(\.setNumber), SortDescriptor(\.date)])
+        return (try? ctx.fetch(d)) ?? []
+    }
+    private func load() {
+        guard let n = target.name else { return }
+        name = n
+        let l = logs(for: n)
+        if !l.isEmpty { weight = l[0].weightKg; reps = l.map(\.reps); existing = true }
+    }
+    private func removeLogs() { for l in logs(for: name) { ctx.delete(l) } }
+    private func save() {
+        removeLogs()
+        let when = entryDate(for: date)
+        for (i, r) in reps.enumerated() { ctx.insert(SetLog(exerciseName: name, weightKg: weight, reps: r, setNumber: i + 1, date: when)) }
+        try? ctx.save(); dismiss()
     }
 }
