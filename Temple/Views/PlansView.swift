@@ -11,7 +11,7 @@ struct PlansView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 16) {
+                VStack(spacing: 24) {
                     if plans.isEmpty {
                         VStack(spacing: 6) {
                             Text("No plans yet").font(.system(size: 17, weight: .semibold))

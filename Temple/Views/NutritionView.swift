@@ -61,7 +61,7 @@ struct WeeklyGoalsCard: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 28) {
+        VStack(alignment: .leading, spacing: 36) {
             Text("Weekly goals").font(.system(size: 20, weight: .bold)).foregroundStyle(Color.yolk)
             WeekBars(title: "Calories", unit: "kcal", target: t.kcal, values: totals(\.kcal), days: days)
             WeekBars(title: "Protein", unit: "g", target: t.proteinG, values: totals(\.proteinG), days: days)
@@ -69,6 +69,10 @@ struct WeeklyGoalsCard: View {
         .padding(Space.inCard).frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.card, in: RoundedRectangle(cornerRadius: Radius.card))
     }
+}
+
+struct GoalLine: Shape {
+    func path(in r: CGRect) -> Path { var p = Path(); p.move(to: CGPoint(x: r.minX, y: r.midY)); p.addLine(to: CGPoint(x: r.maxX, y: r.midY)); return p }
 }
 
 struct WeekBars: View {
@@ -81,12 +85,8 @@ struct WeekBars: View {
     }
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text(title).font(.system(size: 15, weight: .semibold))
-                Spacer()
-                Text("Goal \(fmt(target)) \(unit)").font(.system(size: 13)).foregroundStyle(Color.textSecondary)
-            }
-            HStack(alignment: .bottom, spacing: 8) {
+            Text(title).font(.system(size: 15, weight: .semibold))
+            HStack(alignment: .bottom, spacing: 0) {
                 ForEach(values.indices, id: \.self) { i in
                     let v = values[i]
                     let isToday = Calendar.current.isDateInToday(days[i])
@@ -96,6 +96,9 @@ struct WeekBars: View {
                             Color.clear.frame(height: barArea)
                             Capsule().fill(v > 0 ? Color.yolk : Color.raised)
                                 .frame(height: v > 0 ? max(barArea * CGFloat(v / scale), 30) : 30)
+                                .padding(.horizontal, 4)
+                            GoalLine().stroke(Color.white.opacity(0.55), style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
+                                .frame(height: 1).offset(y: -barArea * CGFloat(target / scale))
                         }
                         Text(days[i].formatted(.dateTime.weekday(.abbreviated))).font(.system(size: 11, weight: isToday ? .bold : .medium))
                             .foregroundStyle(isToday ? Color.yolk : Color.textSecondary).lineLimit(1).minimumScaleFactor(0.7)
@@ -132,7 +135,7 @@ struct NutritionContent: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 24) {
+                VStack(spacing: 32) {
                     HStack(spacing: 12) {
                         Ring(title: "Calories", value: meals.reduce(0) { $0 + $1.kcal }, target: t.kcal, unit: "kcal")
                         Ring(title: "Protein", value: meals.reduce(0) { $0 + $1.proteinG }, target: t.proteinG, unit: "g")

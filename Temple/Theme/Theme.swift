@@ -49,8 +49,16 @@ struct Chip: View {
         Text(text).font(.system(size: 15, weight: selected ? .semibold : .regular))
             .foregroundStyle(selected ? Color.yolkInk : Color.textPrimary)
             .padding(.horizontal, 14).frame(height: 32)
-            .background(selected ? Color.yolk : Color.card, in: Capsule())
+            .modifier(ChipBackground(selected: selected))
     }
 }
 
 func hideKeyboard() { UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil) }
+
+private struct ChipBackground: ViewModifier {
+    let selected: Bool
+    @ViewBuilder func body(content: Content) -> some View {
+        if selected { content.background(Color.yolk, in: Capsule()) }
+        else { content.modifier(GlassCapsule()) }
+    }
+}

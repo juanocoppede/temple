@@ -14,31 +14,41 @@ struct ExercisesView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
-                    Section {
-                        VStack(spacing: 0) {
-                            ForEach(Array(filtered.enumerated()), id: \.element.persistentModelID) { i, ex in
-                                NavigationLink { ExerciseDetailView(exercise: ex) } label: { ExerciseRow(exercise: ex) }.buttonStyle(.plain)
-                                if i < filtered.count - 1 { Divider().overlay(Color.white.opacity(0.08)).padding(.leading, 70) }
-                            }
+                VStack(spacing: 20) {
+                    HStack(spacing: 10) {
+                        Image(systemName: "magnifyingglass").foregroundStyle(Color.textSecondary)
+                        TextField("Search \(exercises.count) exercises", text: $search)
+                            .textInputAutocapitalization(.never).autocorrectionDisabled()
+                        if !search.isEmpty {
+                            Button { search = "" } label: { Image(systemName: "xmark.circle.fill").foregroundStyle(Color.textSecondary) }.buttonStyle(.plain)
                         }
-                        .padding(.horizontal, Space.margin).padding(.top, 8).padding(.bottom, 24)
-                    } header: {
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 8) {
-                                ForEach(groups, id: \.self) { g in
-                                    Button { group = g } label: { Chip(text: g, selected: g == group) }.buttonStyle(.plain)
-                                }
-                            }.padding(.horizontal, Space.margin).padding(.vertical, 8)
-                        }
-                        .background(Color.bg)
                     }
+                    .padding(.horizontal, 16).frame(height: 44)
+                    .modifier(GlassCapsule())
+                    .padding(.horizontal, Space.margin)
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(groups, id: \.self) { g in
+                                Button { group = g } label: { Chip(text: g, selected: g == group) }.buttonStyle(.plain)
+                            }
+                        }.padding(.horizontal, Space.margin)
+                    }
+
+                    VStack(spacing: 0) {
+                        ForEach(Array(filtered.enumerated()), id: \.element.persistentModelID) { i, ex in
+                            NavigationLink { ExerciseDetailView(exercise: ex) } label: { ExerciseRow(exercise: ex) }.buttonStyle(.plain)
+                            if i < filtered.count - 1 { Divider().overlay(Color.white.opacity(0.08)).padding(.leading, 70) }
+                        }
+                    }
+                    .padding(.horizontal, Space.margin)
                 }
+                .padding(.top, 8)
             }
+            .scrollDismissesKeyboard(.immediately)
             .contentMargins(.bottom, Space.tabBarClearance, for: .scrollContent)
             .background(Color.bg)
             .navigationTitle("Exercises")
-            .searchable(text: $search, prompt: "Search \(exercises.count) exercises")
         }
     }
 }

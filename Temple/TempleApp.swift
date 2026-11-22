@@ -59,11 +59,12 @@ struct FloatingTabBar: View {
                         Text(t.rawValue).font(.system(size: 11, weight: .medium))
                     }
                     .foregroundStyle(selection == t ? Color.yolk : Color.textSecondary)
+                    .padding(.vertical, 28)
                     .frame(maxWidth: .infinity)
+                    .contentShape(Rectangle())
                 }.buttonStyle(.plain)
             }
         }
-        .padding(.vertical, 28)
         .modifier(GlassBar())
         .shadow(color: .black.opacity(0.35), radius: 12, y: 8)
         .padding(.horizontal, Space.margin)
@@ -83,6 +84,24 @@ struct TrendBarsIcon: Shape {
         p.move(to: P(3.5, 8)); p.addLine(to: P(9, 4.5)); p.addLine(to: P(13, 7)); p.addLine(to: P(20, 3))
         p.move(to: P(16, 3)); p.addLine(to: P(20, 3)); p.addLine(to: P(20, 7))
         return p
+    }
+}
+
+/// Liquid Glass capsule for chips and fields (material fallback before iOS 26).
+struct GlassCapsule: ViewModifier {
+    var tint: Color? = nil
+    @ViewBuilder func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26.0, *) {
+            content.glassEffect(tint == nil ? .regular : .regular.tint(tint!), in: Capsule())
+        } else { fallback(content) }
+        #else
+        fallback(content)
+        #endif
+    }
+    private func fallback(_ content: Content) -> some View {
+        content.background(.ultraThinMaterial, in: Capsule())
+            .overlay(Capsule().stroke(Color.white.opacity(0.16), lineWidth: 1))
     }
 }
 

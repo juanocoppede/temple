@@ -82,7 +82,7 @@ struct DayContent: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
+            VStack(alignment: .leading, spacing: 36) {
                 Text(date.formatted(.dateTime.weekday(.wide).day().month(.wide))).font(.system(size: 28, weight: .bold))
                 section("Workout", detail: nil) {
                     if sets.isEmpty {

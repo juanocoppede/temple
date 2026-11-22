@@ -6,7 +6,7 @@ struct HomeView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 24) {
+                VStack(spacing: 32) {
                     TrainingWeekCard()
                     WeeklyGoalsCard()
                 }.padding(Space.margin).foregroundStyle(Color.textPrimary)
@@ -34,12 +34,8 @@ struct TrainingWeekCard: View {
 
     var body: some View {
         let done = trained
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text("Training").font(.system(size: 20, weight: .bold)).foregroundStyle(Color.yolk)
-                Spacer()
-                Text("\(days.filter { done.contains($0) }.count) of 7 days").font(.system(size: 13)).foregroundStyle(Color.textSecondary)
-            }
+        VStack(alignment: .leading, spacing: 20) {
+            Text("Training").font(.system(size: 20, weight: .bold)).foregroundStyle(Color.yolk)
             HStack(spacing: 0) {
                 ForEach(days, id: \.self) { d in
                     let isDone = done.contains(d)
