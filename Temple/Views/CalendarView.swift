@@ -61,9 +61,7 @@ struct DayContent: View {
     @Query private var targets: [Targets]
     @State private var addingSlot: MealSlot?
     @State private var editingMeal: MealEntry?
-    @State private var editingExercise: ExerciseTarget?
-    @State private var editingCircuit: CircuitTarget?
-    @Query private var exercises: [Exercise]
+    @Query private var sessions: [WorkoutSession]
     private var t: Targets { targets.first ?? Targets() }
 
     init(date: Date) {
@@ -72,6 +70,105 @@ struct DayContent: View {
         let end = Calendar.current.date(byAdding: .day, value: 1, to: start) ?? start
         _sets = Query(filter: #Predicate<SetLog> { $0.date >= start && $0.date < end }, sort: \.date)
         _meals = Query(filter: #Predicate<MealEntry> { $0.date >= start && $0.date < end }, sort: \.date)
+        _sessions = Query(filter: #Predicate<WorkoutSession> { $0.date >= start && $0.date < end }, sort: \.date)
+    }
+
+    /// Plan name(s) done that day, e.g. "Pecho y Tríceps".
+    private var planTitle: String {
+        var names: [String] = []
+        for ss in sessions where !ss.sets.isEmpty { let n = ss.planName ?? "Free workout"; if !names.contains(n) { names.append(n) } }
+        return names.isEmpty ? "Workout" : names.joined(separator: " + ")
+    }
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
+                Text(date.formatted(.dateTime.weekday(.wide).day().month(.wide))).font(.system(size: 28, weight: .bold))
+                section("Workout", detail: nil) {
+                    if sets.isEmpty {
+                        Text("No workout").foregroundStyle(Color.textSecondary)
+                        NavigationLink { DayWorkoutDetail(date: date) } label: { Label("Add workout", systemImage: "plus") }
+                            .font(.system(size: 15, weight: .semibold)).foregroundStyle(Color.yolk)
+                    } else {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(planTitle).font(.system(size: 22, weight: .bold))
+                            Text("\(Set(sets.map(\.exerciseName)).count) exercises · \(sets.count) sets").font(.system(size: 13)).foregroundStyle(Color.textSecondary)
+                        }
+                        NavigationLink { DayWorkoutDetail(date: date) } label: {
+                            HStack(spacing: 6) { Text("View detail"); Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold)) }
+                                .font(.system(size: 15, weight: .semibold)).foregroundStyle(Color.yolkInk)
+                                .padding(.horizontal, 16).frame(height: 36).background(Color.yolk, in: Capsule())
+                        }
+                    }
+                }
+                section("Nutrition", detail: meals.isEmpty ? nil : "\(fmt(meals.reduce(0) { $0 + $1.kcal })) kcal · \(fmt(meals.reduce(0) { $0 + $1.proteinG })) g") {
+                    VStack(spacing: 14) {
+                        ProgressBar(title: "Calories", value: meals.reduce(0) { $0 + $1.kcal }, target: t.kcal, unit: "kcal")
+                        ProgressBar(title: "Protein", value: meals.reduce(0) { $0 + $1.proteinG }, target: t.proteinG, unit: "g")
+                    }
+                    ForEach(MealSlot.allCases, id: \.self) { slot in
+                        let items = meals.filter { $0.slot == slot }
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Text(slot.rawValue).font(.system(size: 15, weight: .semibold))
+                                Spacer()
+                                Button("Add") { addingSlot = slot }.font(.system(size: 15, weight: .semibold)).foregroundStyle(Color.yolk).frame(minWidth: 44, minHeight: 32)
+                            }
+                            ForEach(items) { m in
+                                Button { editingMeal = m } label: {
+                                    HStack {
+                                        Text(m.name).font(.system(size: 15, weight: .semibold)).foregroundStyle(Color.textSecondary)
+                                        Spacer()
+                                        Text("\(fmt(m.kcal)) kcal").font(.system(size: 13)).monospacedDigit()
+                                        Text("\(fmt(m.proteinG)) g").font(.system(size: 13)).monospacedDigit().frame(width: 52, alignment: .trailing)
+                                    }.contentShape(Rectangle())
+                                }.buttonStyle(.plain)
+                            }
+                            if !items.isEmpty {
+                                Divider().overlay(Color.white.opacity(0.1))
+                                HStack {
+                                    Text("Total").font(.system(size: 13, weight: .bold))
+                                    Spacer()
+                                    Text("\(fmt(items.reduce(0) { $0 + $1.kcal })) kcal").font(.system(size: 13, weight: .bold)).monospacedDigit()
+                                    Text("\(fmt(items.reduce(0) { $0 + $1.proteinG })) g").font(.system(size: 13, weight: .bold)).monospacedDigit().frame(width: 52, alignment: .trailing)
+                                }
+                            }
+                        }
+                    }
+                }
+            }.padding(Space.margin).foregroundStyle(Color.textPrimary).frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .contentMargins(.bottom, Space.tabBarClearance, for: .scrollContent)
+        .background(Color.bg).navigationBarTitleDisplayMode(.inline)
+        .sheet(item: $addingSlot) { AddMealView(slot: $0, date: date) }
+        .sheet(item: $editingMeal) { EditMealView(meal: $0) }
+    }
+
+    private func section<C: View>(_ title: String, detail: String?, @ViewBuilder content: () -> C) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(title).font(.system(size: 20, weight: .bold)).foregroundStyle(Color.yolk)
+                Spacer()
+                if let detail { Text(detail).font(.system(size: 13)).foregroundStyle(Color.textSecondary) }
+            }
+            VStack(alignment: .leading, spacing: 16) { content() }
+        }
+    }
+}
+
+/// Everything done on a day: circuits, exercises, weights and reps. Editable.
+struct DayWorkoutDetail: View {
+    let date: Date
+    @Query private var sets: [SetLog]
+    @Query private var exercises: [Exercise]
+    @State private var editingExercise: ExerciseTarget?
+    @State private var editingCircuit: CircuitTarget?
+
+    init(date: Date) {
+        self.date = date
+        let start = Calendar.current.startOfDay(for: date)
+        let end = Calendar.current.date(byAdding: .day, value: 1, to: start) ?? start
+        _sets = Query(filter: #Predicate<SetLog> { $0.date >= start && $0.date < end }, sort: \.date)
     }
 
     struct DayBlock: Identifiable {
@@ -116,10 +213,9 @@ struct DayContent: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
+            VStack(alignment: .leading, spacing: 16) {
                 Text(date.formatted(.dateTime.weekday(.wide).day().month(.wide))).font(.system(size: 28, weight: .bold))
-                section("Workout", detail: blocks.isEmpty ? nil : "\(blocks.reduce(0) { $0 + $1.rows.count }) exercises") {
-                    if blocks.isEmpty { Text("No workout").foregroundStyle(Color.textSecondary) }
+                if blocks.isEmpty { Text("No workout").foregroundStyle(Color.textSecondary) }
                     ForEach(blocks) { block in
                         if let c = block.circuit {
                             VStack(alignment: .leading, spacing: 12) {
@@ -143,62 +239,22 @@ struct DayContent: View {
                         Button { editingExercise = ExerciseTarget(name: nil) } label: { Label("Add exercise", systemImage: "plus") }
                         Button { editingCircuit = CircuitTarget(name: nil) } label: { Label("Add circuit", systemImage: "plus.circle") }
                     }.font(.system(size: 15, weight: .semibold)).foregroundStyle(Color.yolk)
-                }
-                section("Nutrition", detail: meals.isEmpty ? nil : "\(fmt(meals.reduce(0) { $0 + $1.kcal })) kcal · \(fmt(meals.reduce(0) { $0 + $1.proteinG })) g") {
-                    VStack(spacing: 14) {
-                        ProgressBar(title: "Calories", value: meals.reduce(0) { $0 + $1.kcal }, target: t.kcal, unit: "kcal")
-                        ProgressBar(title: "Protein", value: meals.reduce(0) { $0 + $1.proteinG }, target: t.proteinG, unit: "g")
-                    }
-                    ForEach(MealSlot.allCases, id: \.self) { slot in
-                        let items = meals.filter { $0.slot == slot }
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Text(slot.rawValue).font(.system(size: 15, weight: .semibold))
-                                Spacer()
-                                Button("Add") { addingSlot = slot }.font(.system(size: 15, weight: .semibold)).foregroundStyle(Color.yolk).frame(minWidth: 44, minHeight: 32)
-                            }
-                            ForEach(items) { m in
-                                Button { editingMeal = m } label: {
-                                    HStack {
-                                        Text(m.name).font(.system(size: 15, weight: .semibold)).foregroundStyle(Color.textSecondary)
-                                        Spacer()
-                                        Text("\(fmt(m.kcal)) kcal").font(.system(size: 13)).monospacedDigit()
-                                        Text("\(fmt(m.proteinG)) g").font(.system(size: 13)).monospacedDigit().frame(width: 52, alignment: .trailing)
-                                    }.contentShape(Rectangle())
-                                }.buttonStyle(.plain)
-                            }
-                            if !items.isEmpty {
-                                Divider().overlay(Color.white.opacity(0.1))
-                                HStack {
-                                    Text("Total").font(.system(size: 13, weight: .bold))
-                                    Spacer()
-                                    Text("\(fmt(items.reduce(0) { $0 + $1.kcal })) kcal").font(.system(size: 13, weight: .bold)).monospacedDigit()
-                                    Text("\(fmt(items.reduce(0) { $0 + $1.proteinG })) g").font(.system(size: 13, weight: .bold)).monospacedDigit().frame(width: 52, alignment: .trailing)
-                                }
-                            }
-                        }
-                    }
-                }
             }.padding(Space.margin).foregroundStyle(Color.textPrimary).frame(maxWidth: .infinity, alignment: .leading)
         }
         .contentMargins(.bottom, Space.tabBarClearance, for: .scrollContent)
         .background(Color.bg).navigationBarTitleDisplayMode(.inline)
-        .sheet(item: $addingSlot) { AddMealView(slot: $0, date: date) }
-        .sheet(item: $editingMeal) { EditMealView(meal: $0) }
         .sheet(item: $editingExercise) { DayExerciseEditor(date: date, target: $0) }
         .sheet(item: $editingCircuit) { DayCircuitEditor(date: date, target: $0) }
     }
+}
 
-    private func section<C: View>(_ title: String, detail: String?, @ViewBuilder content: () -> C) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(title).font(.system(size: 20, weight: .bold)).foregroundStyle(Color.yolk)
-                Spacer()
-                if let detail { Text(detail).font(.system(size: 13)).foregroundStyle(Color.textSecondary) }
-            }
-            VStack(alignment: .leading, spacing: 16) { content() }
-        }
-    }
+/// Puts sets added from the calendar into that day's workout session (creating one if needed) so the day shows a plan name.
+func attachToSession(_ logs: [SetLog], day: Date, ctx: ModelContext) {
+    let start = Calendar.current.startOfDay(for: day)
+    let end = Calendar.current.date(byAdding: .day, value: 1, to: start) ?? start
+    let d = FetchDescriptor<WorkoutSession>(predicate: #Predicate { $0.date >= start && $0.date < end }, sortBy: [SortDescriptor(\.date)])
+    let s = (try? ctx.fetch(d))?.last ?? { let n = WorkoutSession(date: entryDate(for: day), planName: "Free workout"); ctx.insert(n); return n }()
+    for l in logs { s.sets.append(l) }
 }
 
 struct EditMealView: View {
@@ -286,7 +342,9 @@ struct DayExerciseEditor: View {
     private func save() {
         removeLogs()
         let when = entryDate(for: date)
-        for (i, r) in reps.enumerated() { ctx.insert(SetLog(exerciseName: name, weightKg: weight, reps: r, setNumber: i + 1, date: when)) }
+        var made: [SetLog] = []
+        for (i, r) in reps.enumerated() { let l = SetLog(exerciseName: name, weightKg: weight, reps: r, setNumber: i + 1, date: when); ctx.insert(l); made.append(l) }
+        attachToSession(made, day: date, ctx: ctx)
         try? ctx.save(); dismiss()
     }
 }
@@ -370,11 +428,14 @@ struct DayCircuitEditor: View {
         removeLogs()
         let base = entryDate(for: date)
         let n = name.trimmingCharacters(in: .whitespaces)
+        var made: [SetLog] = []
         for r in 0..<rounds {
             for (ri, row) in rows.enumerated() where r < row.reps.count {
-                ctx.insert(SetLog(exerciseName: row.name, weightKg: row.weight, reps: row.reps[r], setNumber: r + 1, circuitName: n, date: base.addingTimeInterval(Double(r * rows.count + ri))))
+                let l = SetLog(exerciseName: row.name, weightKg: row.weight, reps: row.reps[r], setNumber: r + 1, circuitName: n, date: base.addingTimeInterval(Double(r * rows.count + ri)))
+                ctx.insert(l); made.append(l)
             }
         }
+        attachToSession(made, day: date, ctx: ctx)
         try? ctx.save(); dismiss()
     }
 }
