@@ -37,6 +37,7 @@ struct PlanEditorView: View {
             Section { Button("Delete plan", role: .destructive) { ctx.delete(plan); try? ctx.save(); dismiss() } }
         }
         .environment(\.editMode, .constant(.active))
+        .contentMargins(.bottom, Space.tabBarClearance, for: .scrollContent)
         .scrollContentBackground(.hidden).background(Color.bg)
         .navigationTitle("Edit plan").navigationBarTitleDisplayMode(.inline)
         .tint(Color.yolk)
