@@ -1,23 +1,30 @@
 import SwiftUI
 import UIKit
 
-/// Illustration for an exercise (falls back to a quiet icon when there is none yet).
+/// Photo for an exercise. Square (1:1) by default; `portrait` uses the 3:4 version at full width.
 struct ExerciseArt: View {
     let exercise: Exercise
-    var height: CGFloat? = nil
-    var side: CGFloat? = nil
+    var side: CGFloat? = nil        // fixed square size; nil = flexible width
+    var portrait = false
     var radius: CGFloat = 14
+
+    @ViewBuilder private var image: some View {
+        if let n = exercise.illustration, let img = UIImage(named: portrait ? n + "-34" : n) {
+            Image(uiImage: img).resizable().scaledToFill()
+        } else {
+            Color.raised.overlay(Image(systemName: "figure.strengthtraining.traditional").foregroundStyle(Color.textSecondary))
+        }
+    }
     var body: some View {
         Group {
-            if let n = exercise.illustration, UIImage(named: n) != nil {
-                Image(n).resizable().scaledToFill().scaleEffect(height == nil ? 1.1 : 1)
+            if let side {
+                Color.clear.frame(width: side, height: side)
             } else {
-                Color.raised.overlay(Image(systemName: "figure.strengthtraining.traditional").foregroundStyle(Color.textSecondary))
+                Color.clear.frame(maxWidth: .infinity).aspectRatio(portrait ? 3.0 / 4.0 : 1, contentMode: .fit)
             }
         }
-        .frame(width: side, height: side ?? height)
-        .frame(maxWidth: side == nil ? .infinity : nil)
-        .background(Color.black)
+        .overlay(image)
+        .background(Color(red: 28 / 255, green: 28 / 255, blue: 30 / 255))
         .clipShape(RoundedRectangle(cornerRadius: radius))
     }
 }

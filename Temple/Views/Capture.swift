@@ -64,19 +64,19 @@ struct CameraPicker: UIViewControllerRepresentable {
         engine.prepare()
         try? engine.start()
         listening = true
-        armSilenceTimer()
+        armSilenceTimer(after: 8)       // wait up to 8 s for the first words
         task = recognizer.recognitionTask(with: req) { [weak self] result, error in
             Task { @MainActor in
-                if let result { self?.text = result.bestTranscription.formattedString; self?.armSilenceTimer() }
+                if let result { self?.text = result.bestTranscription.formattedString; self?.armSilenceTimer(after: 2.5) }
                 if error != nil || result?.isFinal == true { self?.stop() }
             }
         }
     }
 
     /// Stops by itself after ~2 s without new words.
-    private func armSilenceTimer() {
+    private func armSilenceTimer(after seconds: TimeInterval = 2.0) {
         silenceTimer?.invalidate()
-        silenceTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { [weak self] _ in
+        silenceTimer = Timer.scheduledTimer(withTimeInterval: seconds, repeats: false) { [weak self] _ in
             Task { @MainActor in self?.stop() }
         }
     }

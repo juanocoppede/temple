@@ -244,8 +244,12 @@ struct AddMealView: View {
                     Button { dictation.toggle() } label: { Label(dictation.listening ? "Stop dictation" : "Dictate", systemImage: dictation.listening ? "stop.circle.fill" : "mic") }
                     Button { showCamera = true } label: { Label("Take a photo", systemImage: "camera") }
                     PhotosPicker(selection: $pick, matching: .images) { Label(image == nil ? "Choose from library" : "Photo selected", systemImage: "photo") }
-                    Button { Task { await analyze() } } label: { if busy { ProgressView() } else { Text("Analyze") } }
+                    Button { Task { await analyze() } } label: { if busy { ProgressView().tint(Color.yolkInk) } else { Text("Analyze") } }
+                        .buttonStyle(PrimaryButton())
                         .disabled(busy || (aiText.isEmpty && image == nil))
+                        .opacity(busy || (aiText.isEmpty && image == nil) ? 0.4 : 1)
+                        .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+                        .listRowBackground(Color.clear)
                     if let error { Text(error).font(.footnote).foregroundStyle(Color.destructive) }
                 }
                 if !items.isEmpty {

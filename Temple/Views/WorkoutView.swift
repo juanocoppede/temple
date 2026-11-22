@@ -102,7 +102,7 @@ struct WorkoutView: View {
             Text("Currently using \(fmt(ex.weightKg)) kg · \(ex.targetSets) × \(ex.targetReps)").font(.system(size: 15)).foregroundStyle(Color.textSecondary)
         }.frame(maxWidth: .infinity, alignment: .leading)
 
-        ExerciseArt(exercise: ex, height: 150, radius: 24)
+        ExerciseArt(exercise: ex, side: 220, radius: 24).frame(maxWidth: .infinity)
         stepper(title: nil, value: "\(fmt(ex.weightKg))", unit: "kg", minus: { ex.weightKg = max(0, ex.weightKg - 1) }, plus: { ex.weightKg += 1 })
         stepper(title: "Reps", value: "\(reps)", unit: ex.isTimed ? "s" : "reps", minus: { reps = max(0, reps - 1) }, plus: { reps += 1 })
 
