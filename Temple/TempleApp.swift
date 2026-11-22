@@ -10,9 +10,10 @@ struct TempleApp: App {
 }
 
 enum AppTab: String, CaseIterable {
-    case exercises = "Exercises", plans = "Plans", nutrition = "Nutrition", calendar = "Calendar"
+    case home = "Home", exercises = "Exercises", plans = "Plans", nutrition = "Nutrition", calendar = "Calendar"
     var icon: String {
         switch self {
+        case .home: return "house"
         case .exercises: return "figure.strengthtraining.traditional"
         case .plans: return "square.grid.2x2"
         case .nutrition: return ""   // custom trending-up bars icon
@@ -24,11 +25,12 @@ enum AppTab: String, CaseIterable {
 struct RootView: View {
     @Environment(\.modelContext) private var ctx
     @Environment(\.scenePhase) private var phase
-    @State private var tab: AppTab = .exercises
+    @State private var tab: AppTab = .home
 
     var body: some View {
         ZStack(alignment: .bottom) {
             ZStack {
+                HomeView().opacity(tab == .home ? 1 : 0).allowsHitTesting(tab == .home)
                 ExercisesView().opacity(tab == .exercises ? 1 : 0).allowsHitTesting(tab == .exercises)
                 PlansView().opacity(tab == .plans ? 1 : 0).allowsHitTesting(tab == .plans)
                 NutritionView().opacity(tab == .nutrition ? 1 : 0).allowsHitTesting(tab == .nutrition)

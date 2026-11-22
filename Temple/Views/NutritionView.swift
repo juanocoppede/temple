@@ -165,7 +165,6 @@ struct NutritionContent: View {
                             }
                         }.frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    WeeklyGoalsCard()
                 }.padding(Space.margin).foregroundStyle(Color.textPrimary)
             }
             .contentMargins(.bottom, Space.tabBarClearance, for: .scrollContent)
