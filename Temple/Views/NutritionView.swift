@@ -41,6 +41,71 @@ struct ProgressBar: View {
     }
 }
 
+/// Last 7 days (ending today) of calories and protein as rounded bars.
+struct WeeklyGoalsCard: View {
+    @Query private var meals: [MealEntry]
+    @Query private var targets: [Targets]
+    private let days: [Date]
+
+    init() {
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: .now)
+        days = (0..<7).reversed().compactMap { cal.date(byAdding: .day, value: -$0, to: today) }
+        let start = days.first ?? today
+        _meals = Query(filter: #Predicate<MealEntry> { $0.date >= start })
+    }
+    private var t: Targets { targets.first ?? Targets() }
+    private func totals(_ f: (MealEntry) -> Double) -> [Double] {
+        let cal = Calendar.current
+        return days.map { d in meals.filter { cal.isDate($0.date, inSameDayAs: d) }.reduce(0) { $0 + f($1) } }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 28) {
+            Text("Weekly goals").font(.system(size: 20, weight: .bold)).foregroundStyle(Color.yolk)
+            WeekBars(title: "Calories", unit: "kcal", target: t.kcal, values: totals(\.kcal), days: days)
+            WeekBars(title: "Protein", unit: "g", target: t.proteinG, values: totals(\.proteinG), days: days)
+        }
+        .padding(Space.inCard).frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.card, in: RoundedRectangle(cornerRadius: Radius.card))
+    }
+}
+
+struct WeekBars: View {
+    let title: String, unit: String, target: Double, values: [Double], days: [Date]
+    private let barArea: CGFloat = 130
+    private var scale: Double { max(target, values.max() ?? 0, 1) }
+    private func label(_ v: Double) -> String {
+        if v <= 0 { return "–" }
+        return v >= 1000 ? String(format: "%.1fk", v / 1000) : fmt(v.rounded())
+    }
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text(title).font(.system(size: 15, weight: .semibold))
+                Spacer()
+                Text("Goal \(fmt(target)) \(unit)").font(.system(size: 13)).foregroundStyle(Color.textSecondary)
+            }
+            HStack(alignment: .bottom, spacing: 8) {
+                ForEach(values.indices, id: \.self) { i in
+                    let v = values[i]
+                    let isToday = Calendar.current.isDateInToday(days[i])
+                    VStack(spacing: 8) {
+                        Text(label(v)).font(.system(size: 11)).foregroundStyle(Color.textSecondary).monospacedDigit().lineLimit(1).minimumScaleFactor(0.7)
+                        ZStack(alignment: .bottom) {
+                            Color.clear.frame(height: barArea)
+                            Capsule().fill(v > 0 ? Color.yolk : Color.raised)
+                                .frame(height: v > 0 ? max(barArea * CGFloat(v / scale), 30) : 30)
+                        }
+                        Text(days[i].formatted(.dateTime.weekday(.abbreviated))).font(.system(size: 11, weight: isToday ? .bold : .medium))
+                            .foregroundStyle(isToday ? Color.yolk : Color.textSecondary).lineLimit(1).minimumScaleFactor(0.7)
+                    }.frame(maxWidth: .infinity)
+                }
+            }
+        }
+    }
+}
+
 struct NutritionView: View {
     @Environment(\.scenePhase) private var phase
     @State private var day = Calendar.current.startOfDay(for: .now)
@@ -100,6 +165,7 @@ struct NutritionContent: View {
                             }
                         }.frame(maxWidth: .infinity, alignment: .leading)
                     }
+                    WeeklyGoalsCard()
                 }.padding(Space.margin).foregroundStyle(Color.textPrimary)
             }
             .contentMargins(.bottom, Space.tabBarClearance, for: .scrollContent)
