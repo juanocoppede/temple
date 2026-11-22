@@ -30,11 +30,11 @@ struct RootView: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             ZStack {
-                HomeView().opacity(tab == .home ? 1 : 0).allowsHitTesting(tab == .home)
-                ExercisesView().opacity(tab == .exercises ? 1 : 0).allowsHitTesting(tab == .exercises)
-                PlansView().opacity(tab == .plans ? 1 : 0).allowsHitTesting(tab == .plans)
-                NutritionView().opacity(tab == .nutrition ? 1 : 0).allowsHitTesting(tab == .nutrition)
-                CalendarView().opacity(tab == .calendar ? 1 : 0).allowsHitTesting(tab == .calendar)
+                HomeView().opacity(tab == .home ? 1 : 0).allowsHitTesting(tab == .home).zIndex(tab == .home ? 1 : 0)
+                ExercisesView().opacity(tab == .exercises ? 1 : 0).allowsHitTesting(tab == .exercises).zIndex(tab == .exercises ? 1 : 0)
+                PlansView().opacity(tab == .plans ? 1 : 0).allowsHitTesting(tab == .plans).zIndex(tab == .plans ? 1 : 0)
+                NutritionView().opacity(tab == .nutrition ? 1 : 0).allowsHitTesting(tab == .nutrition).zIndex(tab == .nutrition ? 1 : 0)
+                CalendarView().opacity(tab == .calendar ? 1 : 0).allowsHitTesting(tab == .calendar).zIndex(tab == .calendar ? 1 : 0)
             }
             FloatingTabBar(selection: $tab)
         }
