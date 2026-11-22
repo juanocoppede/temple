@@ -51,6 +51,7 @@ func entryDate(for day: Date) -> Date {
 }
 
 struct ExerciseTarget: Identifiable { let id = UUID(); let name: String? }
+struct CircuitTarget: Identifiable { let id = UUID(); let name: String? }
 
 struct DayContent: View {
     let date: Date
@@ -61,6 +62,8 @@ struct DayContent: View {
     @State private var addingSlot: MealSlot?
     @State private var editingMeal: MealEntry?
     @State private var editingExercise: ExerciseTarget?
+    @State private var editingCircuit: CircuitTarget?
+    @Query private var exercises: [Exercise]
     private var t: Targets { targets.first ?? Targets() }
 
     init(date: Date) {
@@ -71,33 +74,75 @@ struct DayContent: View {
         _meals = Query(filter: #Predicate<MealEntry> { $0.date >= start && $0.date < end }, sort: \.date)
     }
 
-    private var grouped: [(name: String, weight: Double, reps: [Int])] {
-        var order: [String] = []; var dict: [String: (Double, [Int])] = [:]
-        for s in sets { if dict[s.exerciseName] == nil { order.append(s.exerciseName); dict[s.exerciseName] = (s.weightKg, []) }; dict[s.exerciseName]!.1.append(s.reps) }
-        return order.map { (name: $0, weight: dict[$0]!.0, reps: dict[$0]!.1) }
+    struct DayBlock: Identifiable {
+        var id: String { circuit ?? "single-" + (rows.first?.name ?? "") }
+        let circuit: String?
+        var rows: [(name: String, weight: Double, reps: [Int])]
+    }
+    /// Sets of the day in the order they were done: circuits (Circuit A, Circuit B…) and single exercises.
+    private var blocks: [DayBlock] {
+        var out: [DayBlock] = []
+        for s in sets {
+            let row = (name: s.exerciseName, weight: s.weightKg, reps: [s.reps])
+            if let c = s.circuitName {
+                if let bi = out.firstIndex(where: { $0.circuit == c }) {
+                    if let ri = out[bi].rows.firstIndex(where: { $0.name == s.exerciseName }) { out[bi].rows[ri].reps.append(s.reps) }
+                    else { out[bi].rows.append(row) }
+                } else { out.append(DayBlock(circuit: c, rows: [row])) }
+            } else if let bi = out.firstIndex(where: { $0.circuit == nil && $0.rows.first?.name == s.exerciseName }) {
+                out[bi].rows[0].reps.append(s.reps)
+            } else { out.append(DayBlock(circuit: nil, rows: [row])) }
+        }
+        return out
+    }
+
+    @ViewBuilder private func art(_ name: String) -> some View {
+        if let ex = exercises.first(where: { $0.name == name }) { ExerciseArt(exercise: ex, side: 52, radius: 12) }
+        else { Color.raised.frame(width: 52, height: 52).clipShape(RoundedRectangle(cornerRadius: 12)) }
+    }
+
+    private func rowView(_ r: (name: String, weight: Double, reps: [Int]), chevron: Bool) -> some View {
+        HStack(spacing: 12) {
+            art(r.name)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(r.name).font(.system(size: 15, weight: .semibold))
+                Text("\(r.weight == 0 ? "BW" : fmt(r.weight) + " kg") × " + r.reps.map(String.init).joined(separator: ", "))
+                    .font(.system(size: 13)).foregroundStyle(Color.textSecondary).monospacedDigit()
+            }
+            Spacer()
+            if chevron { Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold)).foregroundStyle(Color.textSecondary) }
+        }.contentShape(Rectangle())
     }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
                 Text(date.formatted(.dateTime.weekday(.wide).day().month(.wide))).font(.system(size: 28, weight: .bold))
-                section("Workout", detail: grouped.isEmpty ? nil : "\(grouped.count) exercises") {
-                    if grouped.isEmpty { Text("No workout").foregroundStyle(Color.textSecondary) }
-                    ForEach(grouped, id: \.name) { g in
-                        Button { editingExercise = ExerciseTarget(name: g.name) } label: {
-                            HStack {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(g.name).font(.system(size: 15, weight: .semibold))
-                                    Text("\(g.weight == 0 ? "BW" : fmt(g.weight) + " kg") × " + g.reps.map(String.init).joined(separator: ", "))
-                                        .font(.system(size: 13)).foregroundStyle(Color.textSecondary).monospacedDigit()
-                                }
-                                Spacer()
-                                Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold)).foregroundStyle(Color.textSecondary)
-                            }.contentShape(Rectangle())
-                        }.buttonStyle(.plain)
+                section("Workout", detail: blocks.isEmpty ? nil : "\(blocks.reduce(0) { $0 + $1.rows.count }) exercises") {
+                    if blocks.isEmpty { Text("No workout").foregroundStyle(Color.textSecondary) }
+                    ForEach(blocks) { block in
+                        if let c = block.circuit {
+                            VStack(alignment: .leading, spacing: 12) {
+                                Button { editingCircuit = CircuitTarget(name: c) } label: {
+                                    HStack {
+                                        Text(c).font(.system(size: 17, weight: .bold))
+                                        Text("· \(block.rows.map { $0.reps.count }.max() ?? 0) rounds").font(.system(size: 13)).foregroundStyle(Color.textSecondary)
+                                        Spacer()
+                                        Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold)).foregroundStyle(Color.textSecondary)
+                                    }.contentShape(Rectangle())
+                                }.buttonStyle(.plain)
+                                ForEach(block.rows, id: \.name) { r in rowView(r, chevron: false) }
+                            }
+                            .padding(Space.inCard).frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color.card, in: RoundedRectangle(cornerRadius: Radius.card))
+                        } else if let r = block.rows.first {
+                            Button { editingExercise = ExerciseTarget(name: r.name) } label: { rowView(r, chevron: true) }.buttonStyle(.plain)
+                        }
                     }
-                    Button { editingExercise = ExerciseTarget(name: nil) } label: { Label("Add exercise", systemImage: "plus") }
-                        .font(.system(size: 15, weight: .semibold)).foregroundStyle(Color.yolk)
+                    HStack(spacing: 20) {
+                        Button { editingExercise = ExerciseTarget(name: nil) } label: { Label("Add exercise", systemImage: "plus") }
+                        Button { editingCircuit = CircuitTarget(name: nil) } label: { Label("Add circuit", systemImage: "plus.circle") }
+                    }.font(.system(size: 15, weight: .semibold)).foregroundStyle(Color.yolk)
                 }
                 section("Nutrition", detail: meals.isEmpty ? nil : "\(fmt(meals.reduce(0) { $0 + $1.kcal })) kcal · \(fmt(meals.reduce(0) { $0 + $1.proteinG })) g") {
                     VStack(spacing: 14) {
@@ -141,6 +186,7 @@ struct DayContent: View {
         .sheet(item: $addingSlot) { AddMealView(slot: $0, date: date) }
         .sheet(item: $editingMeal) { EditMealView(meal: $0) }
         .sheet(item: $editingExercise) { DayExerciseEditor(date: date, target: $0) }
+        .sheet(item: $editingCircuit) { DayCircuitEditor(date: date, target: $0) }
     }
 
     private func section<C: View>(_ title: String, detail: String?, @ViewBuilder content: () -> C) -> some View {
@@ -241,6 +287,94 @@ struct DayExerciseEditor: View {
         removeLogs()
         let when = entryDate(for: date)
         for (i, r) in reps.enumerated() { ctx.insert(SetLog(exerciseName: name, weightKg: weight, reps: r, setNumber: i + 1, date: when)) }
+        try? ctx.save(); dismiss()
+    }
+}
+
+/// Add or edit a circuit (exercises done in order, repeated for N rounds) on a given day.
+struct DayCircuitEditor: View {
+    let date: Date
+    let target: CircuitTarget
+    @Environment(\.modelContext) private var ctx
+    @Environment(\.dismiss) private var dismiss
+    @Query(sort: \Exercise.name) private var exercises: [Exercise]
+
+    struct Row: Identifiable { let id = UUID(); var name: String; var weight: Double; var reps: [Int] }
+    @State private var name = ""
+    @State private var rounds = 3
+    @State private var rows: [Row] = []
+    @State private var existing = false
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Circuit") {
+                    TextField("Name", text: $name)
+                    Stepper("Rounds: \(rounds)", value: $rounds, in: 1...10)
+                }
+                ForEach($rows) { $row in
+                    Section {
+                        Text(row.name).font(.headline)
+                        HStack { Text("Weight (kg)"); Spacer(); TextField("0", value: $row.weight, format: .number).keyboardType(.decimalPad).multilineTextAlignment(.trailing).frame(width: 90) }
+                        ForEach(row.reps.indices, id: \.self) { i in Stepper("Round \(i + 1): \(row.reps[i])", value: $row.reps[i], in: 0...300) }
+                        Button("Remove exercise", role: .destructive) { rows.removeAll { $0.id == row.id } }
+                    }
+                }
+                Section {
+                    Menu("Add exercise to circuit") {
+                        ForEach(exercises) { ex in Button(ex.name) { rows.append(Row(name: ex.name, weight: ex.weightKg, reps: Array(repeating: ex.targetReps > 0 ? ex.targetReps : 10, count: rounds))) } }
+                    }
+                }
+                if existing { Section { Button("Remove circuit from this day", role: .destructive) { removeLogs(); try? ctx.save(); dismiss() } } }
+            }
+            .scrollDismissesKeyboard(.immediately)
+            .scrollContentBackground(.hidden).background(Color.bg)
+            .navigationTitle(target.name == nil ? "Add circuit" : "Edit circuit").navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) { Button("Save") { save() }.disabled(name.trimmingCharacters(in: .whitespaces).isEmpty || rows.isEmpty) }
+            }
+            .onAppear { load() }
+            .onChange(of: rounds) { _, n in
+                for i in rows.indices {
+                    while rows[i].reps.count < n { rows[i].reps.append(rows[i].reps.last ?? 10) }
+                    while rows[i].reps.count > n { rows[i].reps.removeLast() }
+                }
+            }
+        }.tint(Color.yolk)
+    }
+
+    private func daySets() -> [SetLog] {
+        let start = Calendar.current.startOfDay(for: date)
+        let end = Calendar.current.date(byAdding: .day, value: 1, to: start) ?? start
+        let d = FetchDescriptor<SetLog>(predicate: #Predicate { $0.date >= start && $0.date < end }, sortBy: [SortDescriptor(\.date)])
+        return (try? ctx.fetch(d)) ?? []
+    }
+    private func load() {
+        let day = daySets()
+        guard let n = target.name else {
+            let used = Set(day.compactMap(\.circuitName))
+            name = (65...90).map { "Circuit " + String(UnicodeScalar(UInt8($0))) }.first { !used.contains($0) } ?? "Circuit"
+            return
+        }
+        name = n
+        var out: [Row] = []
+        for l in day where l.circuitName == n {
+            if let i = out.firstIndex(where: { $0.name == l.exerciseName }) { out[i].reps.append(l.reps) }
+            else { out.append(Row(name: l.exerciseName, weight: l.weightKg, reps: [l.reps])) }
+        }
+        rows = out; rounds = out.map { $0.reps.count }.max() ?? 3; existing = !out.isEmpty
+    }
+    private func removeLogs() { for l in daySets() where l.circuitName == (target.name ?? "\u{0}") { ctx.delete(l) } }
+    private func save() {
+        removeLogs()
+        let base = entryDate(for: date)
+        let n = name.trimmingCharacters(in: .whitespaces)
+        for r in 0..<rounds {
+            for (ri, row) in rows.enumerated() where r < row.reps.count {
+                ctx.insert(SetLog(exerciseName: row.name, weightKg: row.weight, reps: row.reps[r], setNumber: r + 1, circuitName: n, date: base.addingTimeInterval(Double(r * rows.count + ri))))
+            }
+        }
         try? ctx.save(); dismiss()
     }
 }
