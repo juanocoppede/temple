@@ -22,7 +22,7 @@ struct PlansView: View {
                         let count = plan.blocks.reduce(0) { $0 + $1.exerciseNames.count }
                         let circuits = plan.blocks.filter(\.isCircuit).count
                         HStack(spacing: 12) {
-                            NavigationLink { PlanEditorView(plan: plan) } label: {
+                            NavigationLink { PlanDetailView(plan: plan) } label: {
                                 VStack(alignment: .leading, spacing: 2) {
                                 Text(plan.name).font(.system(size: 17, weight: .semibold))
                                 Text("\(count) exercises" + (circuits > 0 ? " · \(circuits) circuit\(circuits == 1 ? "" : "s")" : ""))
