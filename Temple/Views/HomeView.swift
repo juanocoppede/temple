@@ -8,6 +8,7 @@ struct HomeView: View {
             ScrollView {
                 VStack(spacing: 32) {
                     TrainingWeekCard()
+                    StepsCard()
                     WeeklyGoalsCard()
                 }.padding(Space.margin).foregroundStyle(Color.textPrimary)
             }
