@@ -34,11 +34,21 @@ enum AIService {
         if let secret = UserDefaults.standard.string(forKey: "proxySecret"), !secret.isEmpty { req.setValue(secret, forHTTPHeaderField: "x-app-secret") }
         req.httpBody = try JSONSerialization.data(withJSONObject: payload)
         req.timeoutInterval = 90
-        let (data, resp) = try await URLSession.shared.data(for: req)
-        let code = (resp as? HTTPURLResponse)?.statusCode ?? 0
+        var data = Data(), code = 0
+        for attempt in 0..<4 {                      // Gemini sometimes answers 503 "high demand": retry a few times
+            let (d, resp) = try await URLSession.shared.data(for: req)
+            data = d; code = (resp as? HTTPURLResponse)?.statusCode ?? 0
+            let body = String(data: d, encoding: .utf8) ?? ""
+            let busy = code == 429 || code == 503 || (code == 502 && (body.contains("503") || body.contains("429") || body.contains("UNAVAILABLE")))
+            if code == 200 || !busy || attempt == 3 { break }
+            try await Task.sleep(nanoseconds: UInt64(2 + attempt * 2) * 1_000_000_000)
+        }
         guard code == 200 else {
-            let body = String(data: data, encoding: .utf8)?.prefix(300) ?? ""
-            throw AIError.failed("AI service error \(code): \(body)")
+            let body = String(data: data, encoding: .utf8) ?? ""
+            if code == 429 || code == 503 || body.contains("UNAVAILABLE") || body.contains("high demand") {
+                throw AIError.failed("The AI model is busy right now. Try again in a minute.")
+            }
+            throw AIError.failed("AI service error \(code): \(body.prefix(200))")
         }
         struct Reply: Decodable { let items: [FoodItem] }
         return try JSONDecoder().decode(Reply.self, from: data).items

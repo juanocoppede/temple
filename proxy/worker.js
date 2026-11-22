@@ -14,12 +14,22 @@ export default {
     const parts = [{ text: PROMPT + (text ? `\nDescription: ${text}` : "") }];
     if (imageBase64) parts.push({ inline_data: { mime_type: "image/jpeg", data: imageBase64 } });
 
-    const model = env.MODEL || "gemini-3.6-flash";
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-      method: "POST",
-      headers: { "content-type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
-      body: JSON.stringify({ contents: [{ parts }], generationConfig: { responseMimeType: "application/json", temperature: 0.2, maxOutputTokens: 4096 } }),
-    });
+    // Try MODEL first, then optional FALLBACK_MODELS (comma separated); retry busy errors (429/500/503) briefly.
+    const models = [env.MODEL || "gemini-3.6-flash", ...(env.FALLBACK_MODELS || "").split(",").map(s => s.trim()).filter(Boolean)];
+    const payload = JSON.stringify({ contents: [{ parts }], generationConfig: { responseMimeType: "application/json", temperature: 0.2, maxOutputTokens: 4096 } });
+    let r;
+    for (const model of models) {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+          method: "POST",
+          headers: { "content-type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
+          body: payload,
+        });
+        if (r.ok || ![429, 500, 503].includes(r.status)) break;
+        await new Promise(res => setTimeout(res, 1500));
+      }
+      if (r.ok || ![429, 500, 503, 404].includes(r.status)) break;
+    }
     if (!r.ok) return new Response(`Gemini error ${r.status}: ${(await r.text()).slice(0, 250)}`, { status: 502 });
     const data = await r.json();
     // Newer Gemini models may return several parts (thoughts, fenced code): join the text parts and pull out the JSON object.
