@@ -62,9 +62,8 @@ struct FloatingTabBar: View {
             }
         }
         .padding(.vertical, 28)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 28))
-        .overlay(RoundedRectangle(cornerRadius: 28).stroke(Color.white.opacity(0.16), lineWidth: 1))
-        .shadow(color: .black.opacity(0.5), radius: 12, y: 8)
+        .modifier(GlassBar())
+        .shadow(color: .black.opacity(0.35), radius: 12, y: 8)
         .padding(.horizontal, Space.margin)
         .padding(.bottom, 6)             // sits just above the iPhone's home-indicator zone
     }
@@ -82,5 +81,23 @@ struct TrendBarsIcon: Shape {
         p.move(to: P(3.5, 8)); p.addLine(to: P(9, 4.5)); p.addLine(to: P(13, 7)); p.addLine(to: P(20, 3))
         p.move(to: P(16, 3)); p.addLine(to: P(20, 3)); p.addLine(to: P(20, 7))
         return p
+    }
+}
+
+/// Real Liquid Glass on iOS 26+ (when built with the iOS 26 SDK); a translucent material on older systems.
+struct GlassBar: ViewModifier {
+    @ViewBuilder func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26.0, *) {
+            content.glassEffect(.regular, in: RoundedRectangle(cornerRadius: 28))
+        } else { fallback(content) }
+        #else
+        fallback(content)
+        #endif
+    }
+    private func fallback(_ content: Content) -> some View {
+        content
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 28))
+            .overlay(RoundedRectangle(cornerRadius: 28).stroke(Color.white.opacity(0.16), lineWidth: 1))
     }
 }

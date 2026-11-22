@@ -79,7 +79,6 @@ struct WorkoutView: View {
         .padding(.horizontal, Space.margin).padding(.bottom, 28)
         .background(Color.bg.ignoresSafeArea())
         .onAppear { if let s = all.first { reps = s.exercise.targetReps } }
-        .sheet(isPresented: $showTips) { if index < all.count { TipsSheet(exercise: all[index].exercise) } }
     }
 
     @ViewBuilder private func content(step: WorkoutStep, all: [WorkoutStep]) -> some View {
@@ -99,12 +98,7 @@ struct WorkoutView: View {
             Text("\(c) · ROUND \(step.number) OF \(step.total)").font(.system(size: 12, weight: .semibold)).tracking(0.7).foregroundStyle(Color.yolk).frame(maxWidth: .infinity, alignment: .leading)
         }
         VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 8) {
-                Text(ex.name).font(.system(size: 28, weight: .bold))
-                if !ex.tips.isEmpty {
-                    Button { showTips = true } label: { Image(systemName: "info.circle").font(.system(size: 22)).foregroundStyle(Color.yolk).frame(width: 44, height: 44) }
-                }
-            }
+            Text(ex.name).font(.system(size: 28, weight: .bold))
             Text("Currently using \(fmt(ex.weightKg)) kg · \(ex.targetSets) × \(ex.targetReps)").font(.system(size: 15)).foregroundStyle(Color.textSecondary)
         }.frame(maxWidth: .infinity, alignment: .leading)
 
@@ -126,6 +120,13 @@ struct WorkoutView: View {
                 .background(done[i] != nil ? Color.yolk : Color.card, in: RoundedRectangle(cornerRadius: 14))
                 .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.yolk, lineWidth: isCurrent ? 1.5 : 0))
             }
+        }
+
+        if !ex.tips.isEmpty {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Cómo hacerlo").font(.system(size: 20, weight: .bold)).foregroundStyle(Color.yolk)
+                TipsList(tips: ex.tips)
+            }.frame(maxWidth: .infinity, alignment: .leading).padding(.top, 8)
         }
     }
 
