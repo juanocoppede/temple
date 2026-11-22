@@ -24,7 +24,7 @@ struct ExerciseArt: View {
             }
         }
         .overlay(image)
-        .background(Color.white)
+        .background(Color.card)
         .clipShape(RoundedRectangle(cornerRadius: radius))
     }
 }
