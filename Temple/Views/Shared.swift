@@ -20,7 +20,7 @@ struct ExerciseArt: View {
             if let side {
                 Color.clear.frame(width: side, height: side)
             } else {
-                Color.clear.frame(maxWidth: .infinity).aspectRatio(portrait ? 3.0 / 4.0 : 1, contentMode: .fit)
+                Color.clear.frame(maxWidth: .infinity).aspectRatio(1, contentMode: .fit)
             }
         }
         .overlay(image)
