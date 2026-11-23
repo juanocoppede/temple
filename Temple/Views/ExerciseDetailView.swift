@@ -5,8 +5,7 @@ import Charts
 struct ExerciseDetailView: View {
     let exercise: Exercise
     @Query private var logs: [SetLog]
-    @State private var month = Date()
-
+    
     init(exercise: Exercise) {
         self.exercise = exercise
         let n = exercise.name
@@ -18,7 +17,10 @@ struct ExerciseDetailView: View {
         let byDay = Dictionary(grouping: logs) { cal.startOfDay(for: $0.date) }
         return byDay.map { (date: $0.key, kg: $0.value.map(\.weightKg).max() ?? 0) }.sorted { $0.date < $1.date }
     }
-    private var marked: Set<Date> { Set(logs.map { Calendar.current.startOfDay(for: $0.date) }) }
+    private var last7: [Date] {
+        let cal = Calendar.current, today = cal.startOfDay(for: .now)
+        return (0..<7).reversed().compactMap { cal.date(byAdding: .day, value: -$0, to: today) }
+    }
 
     var body: some View {
         ScrollView {
@@ -31,7 +33,7 @@ struct ExerciseDetailView: View {
                 }
                 if !exercise.tips.isEmpty {
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Cómo hacerlo").font(.system(size: 20, weight: .bold)).foregroundStyle(Color.yolk)
+                        Text("How to do it").font(.system(size: 20, weight: .bold)).foregroundStyle(Color.yolk)
                         TipsList(tips: exercise.tips)
                     }
                 }
@@ -45,17 +47,22 @@ struct ExerciseDetailView: View {
                         }.frame(height: 160)
                     }
                 }
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Calendar").font(.system(size: 20, weight: .bold)).foregroundStyle(Color.yolk)
-                    MonthGrid(month: $month, marked: marked)
-                }
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("History").font(.system(size: 20, weight: .bold)).foregroundStyle(Color.yolk)
-                    if logs.isEmpty { Text("Not done yet").foregroundStyle(Color.textSecondary) }
-                    ForEach(Array(Dictionary(grouping: logs) { Calendar.current.startOfDay(for: $0.date) }.sorted { $0.key > $1.key }), id: \.key) { day, sets in
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(day.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated))).font(.system(size: 15, weight: .semibold))
-                            Text("\(fmt(sets[0].weightKg)) kg × " + sets.map { String($0.reps) }.joined(separator: ", ")).font(.system(size: 13)).foregroundStyle(Color.textSecondary).monospacedDigit()
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Last 7 days").font(.system(size: 20, weight: .bold)).foregroundStyle(Color.yolk)
+                    HStack(spacing: 0) {
+                        ForEach(last7, id: \.self) { d in
+                            let sets = logs.filter { Calendar.current.isDate($0.date, inSameDayAs: d) }
+                            let isToday = Calendar.current.isDateInToday(d)
+                            VStack(spacing: 8) {
+                                Text(d.formatted(.dateTime.weekday(.abbreviated))).font(.system(size: 11, weight: isToday ? .bold : .medium))
+                                    .foregroundStyle(isToday ? Color.yolk : Color.textSecondary).lineLimit(1).minimumScaleFactor(0.7)
+                                ZStack {
+                                    Circle().fill(sets.isEmpty ? Color.clear : Color.yolk)
+                                    Circle().stroke(sets.isEmpty ? Color.raised : Color.clear, lineWidth: 2)
+                                    if !sets.isEmpty { Image(systemName: "checkmark").font(.system(size: 15, weight: .bold)).foregroundStyle(Color.yolkInk) }
+                                }.frame(width: 36, height: 36)
+                                Text("\(Calendar.current.component(.day, from: d))").font(.system(size: 11)).foregroundStyle(Color.textSecondary).monospacedDigit()
+                            }.frame(maxWidth: .infinity)
                         }
                     }
                 }

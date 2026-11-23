@@ -124,7 +124,7 @@ struct WorkoutView: View {
 
         if !ex.tips.isEmpty {
             VStack(alignment: .leading, spacing: 12) {
-                Text("Cómo hacerlo").font(.system(size: 20, weight: .bold)).foregroundStyle(Color.yolk)
+                Text("How to do it").font(.system(size: 20, weight: .bold)).foregroundStyle(Color.yolk)
                 TipsList(tips: ex.tips)
             }.frame(maxWidth: .infinity, alignment: .leading).padding(.top, 8)
         }

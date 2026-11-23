@@ -42,12 +42,6 @@ enum Library {
             "Sube el pecho hacia la barra, no la barbilla. Piernas ligeramente por delante, glúteos y abdomen apretados.",
             "Baja hasta colgarte de nuevo, controlado y sin balanceo (nada de kipping).",
             "No estires el cuello hacia la barra: la cabeza en línea con la columna."]),
-        ExerciseSeed(name: "Curl martillo de pie", group: "Arms", equipment: "Dumbbells", art: "curl-martillo-de-pie", tips: [
-            "Codos pegados a los costados y quietos: si se adelantan, el hombro hace el trabajo.",
-            "Agarre neutro (palmas enfrentadas) y muñecas rectas. Aquí trabajan el braquial y el braquiorradial, que dan grosor al brazo.",
-            "Glúteos apretados y torso quieto. Sin balanceo: si lo necesitas, baja el peso.",
-            "Sube hasta que el antebrazo esté vertical y aprieta un segundo arriba.",
-            "Baja en 3 segundos hasta la extensión completa."]),
         ExerciseSeed(name: "Sentadilla búlgara", group: "Legs", equipment: "Bench, dumbbells", art: "sentadilla-bulgara", tips: [
             "El pie de atrás apoyado en el banco solo como soporte; casi todo el peso va en la pierna delantera.",
             "Coloca el pie delantero lo bastante lejos para que la espinilla quede casi vertical al bajar. Muy cerca carga la rodilla; muy lejos, el pie de atrás.",
@@ -119,21 +113,11 @@ enum Library {
             "Tira el codo hacia la cadera, no hacia el techo; imagina guardar la mancuerna en el bolsillo trasero.",
             "Aprieta el dorsal arriba un segundo y baja hasta estirar el hombro sin rotar el torso.",
             "Caderas cuadradas: sin girar el tronco para ayudarte."]),
-        ExerciseSeed(name: "Press Arnold", group: "Shoulders", equipment: "Dumbbells", art: "press-arnold", tips: [
-            "Empieza con palmas hacia ti frente al pecho y rota hacia afuera mientras subes.",
-            "Termina con palmas al frente y codos casi extendidos sin bloquear.",
-            "Costillas abajo y glúteos apretados; sin arquear la espalda.",
-            "Baja y rota hacia dentro de forma controlada; no corras la rotación."]),
         ExerciseSeed(name: "Elevaciones frontales", group: "Shoulders", equipment: "Dumbbells", art: "elevaciones-frontales", tips: [
             "Brazos casi rectos, sube hasta la altura de los hombros; no más.",
             "Torso quieto, sin inclinarte hacia atrás para subir.",
             "Agarre neutro o pronado, el que sientas mejor en el hombro.",
             "Baja en 3 segundos sin soltar la tensión."]),
-        ExerciseSeed(name: "Elevaciones laterales inclinadas", group: "Shoulders", equipment: "Dumbbells, incline bench", art: "elevaciones-laterales-inclinadas", tips: [
-            "Apoya el pecho en el banco inclinado: el torso queda fijo, sin trampa.",
-            "Codos levemente flexionados, sube hacia los lados hasta la altura del hombro.",
-            "Hombros lejos de las orejas; sin encoger los trapecios.",
-            "Baja lento: el deltoides medio responde a la tensión sostenida."]),
         ExerciseSeed(name: "Pike push-ups", group: "Shoulders", equipment: "Bodyweight", art: "pike-push-ups", tips: [
             "Cadera alta, formando una V invertida; manos algo más anchas que los hombros.",
             "Baja la cabeza hacia el suelo entre las manos, no hacia delante.",
@@ -149,26 +133,16 @@ enum Library {
             "Tira del pecho hacia la barra, codos a unos 45°.",
             "Aprieta las escápulas arriba y baja controlado hasta extender los brazos.",
             "Sin hundir la cadera ni estirar el cuello."]),
-        ExerciseSeed(name: "Press inclinado con mancuernas", group: "Chest", equipment: "Dumbbells, incline bench", art: "press-inclinado", tips: [
-            "Banco a 30°: más alto, trabaja más el hombro que el pecho alto.",
-            "Escápulas juntas y abajo, pies firmes.",
-            "Codos a 45–60° del torso; empuja arriba y ligeramente hacia dentro.",
-            "Baja en 2–3 segundos hasta sentir el estiramiento."]),
-        ExerciseSeed(name: "Aperturas con mancuernas", group: "Chest", equipment: "Dumbbells, bench", art: "aperturas", tips: [
-            "Codos levemente flexionados y fijos: el movimiento es un arco, como abrazar un árbol.",
-            "Baja hasta sentir el estiramiento del pecho, sin pasar la línea del hombro.",
-            "Escápulas juntas y abajo.",
-            "Cierra apretando el pecho, no chocando las mancuernas; peso moderado."]),
         ExerciseSeed(name: "Flexiones declinadas", group: "Chest", equipment: "Bench", art: "flexiones-declinadas", tips: [
             "Pies sobre el banco, cuerpo en una línea recta.",
             "Cuanto más altos los pies, más trabaja el pecho superior y el hombro.",
             "Codos a unos 45° del torso.",
             "Abdomen y glúteos apretados; sin hundir la zona lumbar."]),
-        ExerciseSeed(name: "Flexiones abiertas", group: "Chest", equipment: "Bodyweight", art: "flexiones-abiertas", tips: [
-            "Manos bien más anchas que los hombros; mayor estiramiento del pecho.",
-            "Cuerpo recto, abdomen firme.",
-            "Baja hasta que el pecho roce casi el suelo y empuja con control.",
-            "Si el hombro molesta, acerca un poco las manos."]),
+        ExerciseSeed(name: "Flexiones cerradas", group: "Chest", equipment: "Bodyweight", art: "flexiones-cerradas", tips: [
+            "Manos juntas, a menos de un ancho de hombros, debajo del pecho; los codos rozan las costillas al bajar.",
+            "Cuerpo recto de cabeza a talones, abdomen y glúteos firmes.",
+            "Baja con control hasta casi tocar el suelo y empuja: trabaja más los tríceps que la flexión normal.",
+            "Si la muñeca molesta, separa un poco las manos o apóyate en los puños."]),
         ExerciseSeed(name: "Skull crushers", group: "Arms", equipment: "Dumbbells, bench", art: "skull-crushers", tips: [
             "Codos apuntando al techo y quietos, algo más cerrados que los hombros.",
             "Baja las mancuernas hacia los lados de la cabeza, solo se mueve el antebrazo.",
@@ -209,15 +183,20 @@ enum Library {
             "Sube las rodillas curvando la pelvis hacia las costillas: eso trabaja el abdomen.",
             "Evita el balanceo; sube y baja controlado.",
             "Exhala arriba, aprieta un segundo."]),
-        ExerciseSeed(name: "Elevaciones de piernas colgado", group: "Core", equipment: "Pull-up bar", art: "elevaciones-de-piernas-colgado", tips: [
-            "Cuelga con hombros activos.",
-            "Piernas rectas y juntas; sube hasta la horizontal o más.",
-            "Curva la pelvis arriba para que trabaje el abdomen y no solo el psoas.",
-            "Baja lento sin balanceo."]),
         ExerciseSeed(name: "Plancha lateral", group: "Core", equipment: "Bodyweight", art: "plancha-lateral", tips: [
             "Codo bajo el hombro; cuerpo en una sola línea de cabeza a pies.",
             "Empuja el suelo con el antebrazo y sube la cadera.",
             "Pies apilados o uno delante del otro para más estabilidad.",
             "Respira normal; sin rotar el torso."]),
+        ExerciseSeed(name: "Remo con pecho apoyado en máquina", group: "Back", equipment: "Machine", art: "remo-pecho-apoyado", tips: [
+            "Ajusta el asiento para que el pecho quede firme contra el soporte y los brazos estirados lleguen a las asas sin encogerte.",
+            "Inicia el movimiento llevando los hombros hacia atrás y abajo, y después tira con los codos hacia las costillas.",
+            "Aprieta las escápulas un segundo al final; no te despegues del respaldo ni tires con el cuello.",
+            "Vuelve en 2–3 segundos hasta estirar la espalda, sin soltar el peso de golpe."]),
+        ExerciseSeed(name: "Crunch abdominal", group: "Core", equipment: "Bodyweight", art: "crunch-abdominal", tips: [
+            "Rodillas flexionadas, pies apoyados y la zona lumbar relajada contra el suelo; manos cruzadas en el pecho o rozando las sienes.",
+            "Sube solo las costillas hacia la pelvis, enrollando el torso; no tires del cuello con las manos.",
+            "Exhala arriba y aprieta el abdomen un segundo; baja lento sin dejar caer la cabeza.",
+            "El recorrido es corto: si te sientas del todo, trabaja el psoas y no el abdomen."]),
     ]
 }

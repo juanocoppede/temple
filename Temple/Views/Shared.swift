@@ -44,14 +44,14 @@ struct TipsList: View {
     }
 }
 
-/// "Cómo hacerlo" modal: frosted glass over a dimmed scrim.
+/// "How to do it" modal: frosted glass over a dimmed scrim.
 struct TipsSheet: View {
     let exercise: Exercise
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 Text(exercise.name).font(.system(size: 28, weight: .bold))
-                Text("Cómo hacerlo").font(.system(size: 12, weight: .semibold)).tracking(0.7).textCase(.uppercase).foregroundStyle(Color.yolk)
+                Text("How to do it").font(.system(size: 12, weight: .semibold)).tracking(0.7).textCase(.uppercase).foregroundStyle(Color.yolk)
                 TipsList(tips: exercise.tips)
             }
             .padding(Space.margin).frame(maxWidth: .infinity, alignment: .leading)
