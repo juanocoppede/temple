@@ -35,7 +35,8 @@ struct StepsCard: View {
     @Environment(\.scenePhase) private var phase
     private let barArea: CGFloat = 110
 
-    private var scale: Double { Double(max(model.steps.compactMap { $0 }.max() ?? 0, 1)) }
+    private let goal = 10_000.0
+    private var scale: Double { max(goal, Double(model.steps.compactMap { $0 }.max() ?? 0)) }
     private func label(_ v: Int?) -> String {
         guard let v, v > 0 else { return "–" }
         return v >= 1000 ? String(format: "%.1fk", Double(v) / 1000) : "\(v)"
@@ -63,6 +64,8 @@ struct StepsCard: View {
                                 Capsule().fill(v > 0 ? Color.yolk : Color.raised)
                                     .frame(height: v > 0 ? max(barArea * CGFloat(Double(v) / scale), 30) : 30)
                                     .padding(.horizontal, 4)
+                                GoalLine().stroke(Color.white.opacity(0.6), lineWidth: 1)
+                                    .frame(height: 1).offset(y: -barArea * CGFloat(goal / scale))
                             }
                             Text(model.days[i].formatted(.dateTime.weekday(.abbreviated))).font(.system(size: 11, weight: isToday ? .bold : .medium))
                                 .foregroundStyle(isToday ? Color.yolk : Color.textSecondary).lineLimit(1).minimumScaleFactor(0.7)

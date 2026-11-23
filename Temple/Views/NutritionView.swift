@@ -97,7 +97,7 @@ struct WeekBars: View {
                             Capsule().fill(v > 0 ? Color.yolk : Color.raised)
                                 .frame(height: v > 0 ? max(barArea * CGFloat(v / scale), 30) : 30)
                                 .padding(.horizontal, 4)
-                            GoalLine().stroke(Color.white.opacity(0.55), style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
+                            GoalLine().stroke(Color.white.opacity(0.6), lineWidth: 1)
                                 .frame(height: 1).offset(y: -barArea * CGFloat(target / scale))
                         }
                         Text(days[i].formatted(.dateTime.weekday(.abbreviated))).font(.system(size: 11, weight: isToday ? .bold : .medium))
