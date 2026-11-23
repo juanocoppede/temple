@@ -31,6 +31,13 @@ struct ExerciseDetailView: View {
                     Text("\(exercise.muscleGroup) · \(exercise.equipment)").font(.system(size: 15)).foregroundStyle(Color.textSecondary)
                     Text("Currently using \(fmt(exercise.weightKg)) kg · \(exercise.targetSets) × \(exercise.targetReps)").font(.system(size: 15)).foregroundStyle(Color.textSecondary)
                 }
+                if let n = exercise.illustration, let img = UIImage(named: n + "-musc") {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Muscles worked").font(.system(size: 20, weight: .bold)).foregroundStyle(Color.textPrimary)
+                        Image(uiImage: img).resizable().scaledToFit().frame(maxWidth: .infinity)
+                            .background(Color.white).clipShape(RoundedRectangle(cornerRadius: 24))
+                    }
+                }
                 if !exercise.tips.isEmpty {
                     VStack(alignment: .leading, spacing: 12) {
                         Text("How to do it").font(.system(size: 20, weight: .bold)).foregroundStyle(Color.textPrimary)

@@ -5,11 +5,11 @@ import UIKit
 struct ExerciseArt: View {
     let exercise: Exercise
     var side: CGFloat? = nil        // fixed square size; nil = flexible width
-    var portrait = false
+    var portrait = false            // true = 4:3 landscape version (exercise detail)
     var radius: CGFloat = 14
 
     @ViewBuilder private var image: some View {
-        if let n = exercise.illustration, let img = UIImage(named: portrait ? n + "-34" : n) {
+        if let n = exercise.illustration, let img = UIImage(named: portrait ? n + "-43" : n) {
             Image(uiImage: img).resizable().scaledToFill()
         } else {
             Color.raised.overlay(Image(systemName: "figure.strengthtraining.traditional").foregroundStyle(Color.textSecondary))
@@ -20,11 +20,11 @@ struct ExerciseArt: View {
             if let side {
                 Color.clear.frame(width: side, height: side)
             } else {
-                Color.clear.frame(maxWidth: .infinity).aspectRatio(1, contentMode: .fit)
+                Color.clear.frame(maxWidth: .infinity).aspectRatio(portrait ? 4.0 / 3.0 : 1, contentMode: .fit)
             }
         }
         .overlay(image)
-        .background(Color.card)
+        .background(Color.white)
         .clipShape(RoundedRectangle(cornerRadius: radius))
     }
 }
