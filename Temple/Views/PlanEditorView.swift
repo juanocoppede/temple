@@ -40,7 +40,7 @@ struct PlanEditorView: View {
         .contentMargins(.bottom, Space.tabBarClearance, for: .scrollContent)
         .scrollContentBackground(.hidden).background(Color.bg)
         .navigationTitle("Edit plan").navigationBarTitleDisplayMode(.inline)
-        .tint(Color.yolk)
+        .tint(Color.control)
     }
 
     @ViewBuilder private func picker(_ pick: @escaping (String) -> Void) -> some View {

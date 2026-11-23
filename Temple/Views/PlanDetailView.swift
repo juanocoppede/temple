@@ -22,7 +22,7 @@ struct PlanDetailView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             if block.isCircuit {
                                 HStack {
-                                    Text(block.circuitName ?? "Circuit").font(.system(size: 20, weight: .bold)).foregroundStyle(Color.yolk)
+                                    Text(block.circuitName ?? "Circuit").font(.system(size: 20, weight: .bold)).foregroundStyle(Color.textPrimary)
                                     Spacer()
                                     Text("\(PlanBlock.circuitRounds) rounds").font(.system(size: 13)).foregroundStyle(Color.textSecondary)
                                 }
@@ -42,7 +42,7 @@ struct PlanDetailView: View {
         .navigationTitle(plan.name).navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                NavigationLink { PlanEditorView(plan: plan) } label: { Text("Edit") }.tint(Color.yolk)
+                NavigationLink { PlanEditorView(plan: plan) } label: { Text("Edit") }.tint(Color.control)
             }
         }
         .fullScreenCover(isPresented: $running) { WorkoutView(planName: plan.name, blocks: plan.workoutBlocks) }

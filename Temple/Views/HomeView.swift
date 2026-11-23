@@ -36,7 +36,7 @@ struct TrainingWeekCard: View {
     var body: some View {
         let done = trained
         VStack(alignment: .leading, spacing: 20) {
-            Text("Training").font(.system(size: 20, weight: .bold)).foregroundStyle(Color.yolk)
+            Text("Training").font(.system(size: 20, weight: .bold)).foregroundStyle(Color.textPrimary)
             HStack(spacing: 0) {
                 ForEach(days, id: \.self) { d in
                     let isDone = done.contains(d)

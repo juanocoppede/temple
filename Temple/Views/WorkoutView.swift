@@ -60,7 +60,7 @@ struct WorkoutView: View {
                 Spacer()
                 Text(planName).font(.system(size: 17, weight: .semibold))
                 Spacer()
-                Button("Finish") { dismiss() }.fontWeight(.semibold).foregroundStyle(Color.yolk)
+                Button("Finish") { dismiss() }.fontWeight(.semibold).foregroundStyle(Color.control)
             }.font(.system(size: 17)).frame(height: 44)
 
             if index < all.count {
@@ -95,7 +95,7 @@ struct WorkoutView: View {
                     }
                 }
             }
-            Text("\(c) · ROUND \(step.number) OF \(step.total)").font(.system(size: 12, weight: .semibold)).tracking(0.7).foregroundStyle(Color.yolk).frame(maxWidth: .infinity, alignment: .leading)
+            Text("\(c) · ROUND \(step.number) OF \(step.total)").font(.system(size: 12, weight: .semibold)).tracking(0.7).foregroundStyle(Color.textSecondary).frame(maxWidth: .infinity, alignment: .leading)
         }
         VStack(alignment: .leading, spacing: 4) {
             Text(ex.name).font(.system(size: 28, weight: .bold))
@@ -124,7 +124,7 @@ struct WorkoutView: View {
 
         if !ex.tips.isEmpty {
             VStack(alignment: .leading, spacing: 12) {
-                Text("How to do it").font(.system(size: 20, weight: .bold)).foregroundStyle(Color.yolk)
+                Text("How to do it").font(.system(size: 20, weight: .bold)).foregroundStyle(Color.textPrimary)
                 TipsList(tips: ex.tips)
             }.frame(maxWidth: .infinity, alignment: .leading).padding(.top, 8)
         }

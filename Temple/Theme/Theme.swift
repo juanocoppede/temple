@@ -10,6 +10,7 @@ extension Color {
     static let raised = Color(hex: 0x2C2C2E)
     static let textPrimary = Color(hex: 0xF5F5F7)
     static let textSecondary = Color(hex: 0x8E8E93)
+    static let control = Color(hex: 0xD1D1D6)   // navigation/text actions: light gray
     static let yolk = Color(hex: 0xF5C03A)
     static let yolkSoft = Color(hex: 0xF5C03A).opacity(0.14)
     static let yolkInk = Color(hex: 0x1A1400)

@@ -35,8 +35,8 @@ struct TipsList: View {
         VStack(alignment: .leading, spacing: 14) {
             ForEach(Array(tips.enumerated()), id: \.offset) { i, t in
                 HStack(alignment: .top, spacing: 12) {
-                    Text("\(i + 1)").font(.system(size: 13, weight: .bold)).foregroundStyle(Color.yolkInk)
-                        .frame(width: 22, height: 22).background(Color.yolk, in: Circle())
+                    Text("\(i + 1)").font(.system(size: 13, weight: .bold)).foregroundStyle(Color.textPrimary)
+                        .frame(width: 22, height: 22).background(Color.raised, in: Circle())
                     Text(t).font(.system(size: 15)).lineSpacing(3).foregroundStyle(Color.textPrimary)
                 }
             }
@@ -51,7 +51,7 @@ struct TipsSheet: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 Text(exercise.name).font(.system(size: 28, weight: .bold))
-                Text("How to do it").font(.system(size: 12, weight: .semibold)).tracking(0.7).textCase(.uppercase).foregroundStyle(Color.yolk)
+                Text("How to do it").font(.system(size: 12, weight: .semibold)).tracking(0.7).textCase(.uppercase).foregroundStyle(Color.textSecondary)
                 TipsList(tips: exercise.tips)
             }
             .padding(Space.margin).frame(maxWidth: .infinity, alignment: .leading)

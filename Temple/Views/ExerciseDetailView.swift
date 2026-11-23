@@ -33,12 +33,12 @@ struct ExerciseDetailView: View {
                 }
                 if !exercise.tips.isEmpty {
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("How to do it").font(.system(size: 20, weight: .bold)).foregroundStyle(Color.yolk)
+                        Text("How to do it").font(.system(size: 20, weight: .bold)).foregroundStyle(Color.textPrimary)
                         TipsList(tips: exercise.tips)
                     }
                 }
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Weight").font(.system(size: 20, weight: .bold)).foregroundStyle(Color.yolk)
+                    Text("Weight").font(.system(size: 20, weight: .bold)).foregroundStyle(Color.textPrimary)
                     if points.count < 2 { Text("The chart appears after two sessions.").foregroundStyle(Color.textSecondary).font(.system(size: 13)) }
                     else {
                         Chart(points, id: \.date) { p in
@@ -48,7 +48,7 @@ struct ExerciseDetailView: View {
                     }
                 }
                 VStack(alignment: .leading, spacing: 16) {
-                    Text("Last 7 days").font(.system(size: 20, weight: .bold)).foregroundStyle(Color.yolk)
+                    Text("Last 7 days").font(.system(size: 20, weight: .bold)).foregroundStyle(Color.textPrimary)
                     HStack(spacing: 0) {
                         ForEach(last7, id: \.self) { d in
                             let sets = logs.filter { Calendar.current.isDate($0.date, inSameDayAs: d) }

@@ -47,7 +47,7 @@ struct PlansView: View {
             .contentMargins(.bottom, Space.tabBarClearance, for: .scrollContent)
             .background(Color.bg)
             .navigationTitle("Plans")
-            .toolbar { ToolbarItem(placement: .primaryAction) { Button { ctx.insert(Plan(name: "New plan")); try? ctx.save() } label: { Image(systemName: "plus") }.tint(Color.yolk) } }
+            .toolbar { ToolbarItem(placement: .primaryAction) { Button { ctx.insert(Plan(name: "New plan")); try? ctx.save() } label: { Image(systemName: "plus") }.tint(Color.control) } }
         }
         .fullScreenCover(item: $running) { plan in WorkoutView(planName: plan.name, blocks: plan.workoutBlocks) }
         .fullScreenCover(isPresented: Binding(get: { freeBlocks != nil }, set: { if !$0 { freeBlocks = nil } })) {
@@ -102,7 +102,7 @@ struct FreeWorkoutPicker: View {
                     }.disabled(valid.isEmpty)
                 }
             }
-        }.tint(Color.yolk)
+        }.tint(Color.control)
     }
 
     @ViewBuilder private func picker(_ pick: @escaping (String) -> Void) -> some View {

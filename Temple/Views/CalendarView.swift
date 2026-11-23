@@ -88,7 +88,7 @@ struct DayContent: View {
                     if sets.isEmpty {
                         Text("No workout").foregroundStyle(Color.textSecondary)
                         NavigationLink { DayWorkoutDetail(date: date) } label: { Label("Add workout", systemImage: "plus") }
-                            .font(.system(size: 15, weight: .semibold)).foregroundStyle(Color.yolk)
+                            .font(.system(size: 15, weight: .semibold)).foregroundStyle(Color.control)
                     } else {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(planTitle).font(.system(size: 22, weight: .bold))
@@ -112,7 +112,7 @@ struct DayContent: View {
                             HStack {
                                 Text(slot.rawValue).font(.system(size: 15, weight: .semibold))
                                 Spacer()
-                                Button("Add") { addingSlot = slot }.font(.system(size: 15, weight: .semibold)).foregroundStyle(Color.yolk).frame(minWidth: 44, minHeight: 32)
+                                Button("Add") { addingSlot = slot }.font(.system(size: 15, weight: .semibold)).foregroundStyle(Color.control).frame(minWidth: 44, minHeight: 32)
                             }
                             ForEach(items) { m in
                                 Button { editingMeal = m } label: {
@@ -147,7 +147,7 @@ struct DayContent: View {
     private func section<C: View>(_ title: String, detail: String?, @ViewBuilder content: () -> C) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline) {
-                Text(title).font(.system(size: 20, weight: .bold)).foregroundStyle(Color.yolk)
+                Text(title).font(.system(size: 20, weight: .bold)).foregroundStyle(Color.textPrimary)
                 Spacer()
                 if let detail { Text(detail).font(.system(size: 13)).foregroundStyle(Color.textSecondary) }
             }
@@ -238,7 +238,7 @@ struct DayWorkoutDetail: View {
                     HStack(spacing: 20) {
                         Button { editingExercise = ExerciseTarget(name: nil) } label: { Label("Add exercise", systemImage: "plus") }
                         Button { editingCircuit = CircuitTarget(name: nil) } label: { Label("Add circuit", systemImage: "plus.circle") }
-                    }.font(.system(size: 15, weight: .semibold)).foregroundStyle(Color.yolk)
+                    }.font(.system(size: 15, weight: .semibold)).foregroundStyle(Color.control)
             }.padding(Space.margin).foregroundStyle(Color.textPrimary).frame(maxWidth: .infinity, alignment: .leading)
         }
         .contentMargins(.bottom, Space.tabBarClearance, for: .scrollContent)
@@ -276,7 +276,7 @@ struct EditMealView: View {
             .scrollContentBackground(.hidden).background(Color.bg)
             .navigationTitle("Edit meal").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { try? ctx.save(); dismiss() } } }
-        }.tint(Color.yolk)
+        }.tint(Color.control)
     }
 }
 
@@ -323,7 +323,7 @@ struct DayExerciseEditor: View {
             .onChange(of: name) { _, n in
                 if target.name == nil, let ex = exercises.first(where: { $0.name == n }) { weight = ex.weightKg }
             }
-        }.tint(Color.yolk)
+        }.tint(Color.control)
     }
 
     private func logs(for n: String) -> [SetLog] {
@@ -399,7 +399,7 @@ struct DayCircuitEditor: View {
                     while rows[i].reps.count > n { rows[i].reps.removeLast() }
                 }
             }
-        }.tint(Color.yolk)
+        }.tint(Color.control)
     }
 
     private func daySets() -> [SetLog] {

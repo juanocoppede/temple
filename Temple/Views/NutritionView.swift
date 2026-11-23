@@ -62,7 +62,7 @@ struct WeeklyGoalsCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 36) {
-            Text("Weekly goals").font(.system(size: 20, weight: .bold)).foregroundStyle(Color.yolk)
+            Text("Weekly goals").font(.system(size: 20, weight: .bold)).foregroundStyle(Color.textPrimary)
             WeekBars(title: "Calories", unit: "kcal", target: t.kcal, values: totals(\.kcal), days: days)
             WeekBars(title: "Protein", unit: "g", target: t.proteinG, values: totals(\.proteinG), days: days)
         }
@@ -144,9 +144,9 @@ struct NutritionContent: View {
                         let items = meals.filter { $0.slot == slot }
                         VStack(alignment: .leading, spacing: 12) {
                             HStack {
-                                Text(slot.rawValue).font(.system(size: 20, weight: .bold)).foregroundStyle(Color.yolk)
+                                Text(slot.rawValue).font(.system(size: 20, weight: .bold)).foregroundStyle(Color.textPrimary)
                                 Spacer()
-                                Button("Add") { addingTo = slot }.font(.system(size: 15, weight: .semibold)).foregroundStyle(Color.yolk).frame(minWidth: 44, minHeight: 44)
+                                Button("Add") { addingTo = slot }.font(.system(size: 15, weight: .semibold)).foregroundStyle(Color.control).frame(minWidth: 44, minHeight: 44)
                             }
                             if items.isEmpty { Text("—").foregroundStyle(Color.textSecondary) }
                             ForEach(items) { m in
@@ -217,7 +217,7 @@ struct SettingsView: View {
             }
             .navigationTitle("Settings").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
-        }.tint(Color.yolk)
+        }.tint(Color.control)
     }
 }
 
@@ -295,7 +295,7 @@ struct AddMealView: View {
                 }
             }
         }
-        .tint(Color.yolk)
+        .tint(Color.control)
     }
 
     private func labeled<C: View>(_ title: String, @ViewBuilder _ field: () -> C) -> some View {

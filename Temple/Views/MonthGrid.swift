@@ -23,7 +23,7 @@ struct MonthGrid: View {
                 Spacer()
                 Button { shift(-1) } label: { Image(systemName: "chevron.left").frame(width: 44, height: 44) }
                 Button { shift(1) } label: { Image(systemName: "chevron.right").frame(width: 44, height: 44) }
-            }.foregroundStyle(Color.yolk)
+            }.foregroundStyle(Color.control)
             HStack(spacing: 0) {
                 ForEach(["M", "T", "W", "T", "F", "S", "S"].indices, id: \.self) { i in
                     Text(["M", "T", "W", "T", "F", "S", "S"][i]).font(.system(size: 12, weight: .medium)).foregroundStyle(Color.textSecondary).frame(maxWidth: .infinity)

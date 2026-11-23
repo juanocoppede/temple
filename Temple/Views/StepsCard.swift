@@ -44,7 +44,7 @@ struct StepsCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Text("Steps").font(.system(size: 20, weight: .bold)).foregroundStyle(Color.yolk)
+            Text("Steps").font(.system(size: 20, weight: .bold)).foregroundStyle(Color.textPrimary)
             if model.unavailable {
                 Text("Steps aren't available. Allow Motion & Fitness for Temple in Settings → Privacy & Security.")
                     .font(.system(size: 13)).foregroundStyle(Color.textSecondary)
