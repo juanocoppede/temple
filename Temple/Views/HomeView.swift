@@ -53,7 +53,7 @@ struct TrainingWeekCard: View {
                 let isDone = trained.contains(d)
                 let isToday = cal.isDateInToday(d)
                 let names = planNames(on: d)
-                NavigationLink { DayDetailView(date: d) } label: {
+                NavigationLink { DayWorkoutDetail(date: d) } label: {
                     HStack(spacing: 14) {
                         ZStack {
                             Circle().fill(isDone ? Color.yolk : Color.clear)

@@ -5,10 +5,25 @@ struct ExercisesView: View {
     @Query(sort: \Exercise.name) private var exercises: [Exercise]
     @State private var search = ""
     @State private var group = "All"
+    @Query private var allLogs: [SetLog]
+    @AppStorage("exerciseSort") private var sortRaw = "mostDone"
 
     private var groups: [String] { ["All"] + Array(Set(exercises.map(\.muscleGroup))).sorted() }
+    /// Number of different days each exercise was done.
+    private var timesDone: [String: Int] {
+        let cal = Calendar.current
+        var days: [String: Set<Date>] = [:]
+        for l in allLogs { days[l.exerciseName, default: []].insert(cal.startOfDay(for: l.date)) }
+        return days.mapValues(\.count)
+    }
     private var filtered: [Exercise] {
-        exercises.filter { (group == "All" || $0.muscleGroup == group) && (search.isEmpty || $0.name.localizedCaseInsensitiveContains(search)) }
+        let list = exercises.filter { (group == "All" || $0.muscleGroup == group) && (search.isEmpty || $0.name.localizedCaseInsensitiveContains(search)) }
+        if sortRaw == "name" { return list.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending } }
+        let counts = timesDone
+        return list.sorted {
+            let a = counts[$0.name] ?? 0, b = counts[$1.name] ?? 0
+            return a != b ? a > b : $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending
+        }
     }
 
     var body: some View {
@@ -49,6 +64,16 @@ struct ExercisesView: View {
             .contentMargins(.bottom, Space.tabBarClearance, for: .scrollContent)
             .background(Color.bg)
             .navigationTitle("Exercises")
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Menu {
+                        Picker("Sort by", selection: $sortRaw) {
+                            Text("Most done").tag("mostDone")
+                            Text("Name (A–Z)").tag("name")
+                        }
+                    } label: { Image(systemName: "arrow.up.arrow.down") }.tint(Color.control)
+                }
+            }
         }
     }
 }
