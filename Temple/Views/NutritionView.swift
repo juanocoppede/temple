@@ -241,6 +241,9 @@ struct AddMealView: View {
     @State private var name = ""
     @State private var grams = ""
     @State private var kcal = ""
+    @State private var dictated = false
+    enum PhotoSource { case camera, library }
+    @State private var photoSource: PhotoSource?
     @State private var protein = ""
 
     var body: some View {
@@ -248,9 +251,9 @@ struct AddMealView: View {
             Form {
                 Section("Estimate with AI") {
                     TextField("Describe what you ate", text: $aiText, axis: .vertical)
-                    Button { dictation.toggle() } label: { Label(dictation.listening ? "Stop dictation" : "Dictate", systemImage: dictation.listening ? "stop.circle.fill" : "mic") }
-                    Button { showCamera = true } label: { Label("Take a photo", systemImage: "camera") }
-                    PhotosPicker(selection: $pick, matching: .images) { Label(image == nil ? "Choose from library" : "Photo selected", systemImage: "photo") }
+                    Button { dictation.toggle() } label: { aiRow(dictation.listening ? "Stop dictation" : "Dictate", icon: dictation.listening ? "stop.circle.fill" : "mic", done: dictated && !dictation.listening) }
+                    Button { showCamera = true } label: { aiRow("Take a photo", icon: "camera", done: image != nil && photoSource == .camera) }
+                    PhotosPicker(selection: $pick, matching: .images) { aiRow("Choose from library", icon: "photo", done: image != nil && photoSource == .library) }
                 }
                 Section {
                     Button { Task { await analyze() } } label: { if busy { ProgressView().tint(Color.yolkInk) } else { Text("Analyze") } }
@@ -285,11 +288,11 @@ struct AddMealView: View {
             .scrollDismissesKeyboard(.immediately)      // dragging/scrolling the form closes the keyboard
             .scrollContentBackground(.hidden).background(Color.bg)
             .navigationTitle("Add to \(slot.rawValue)").navigationBarTitleDisplayMode(.inline)
-            .fullScreenCover(isPresented: $showCamera) { CameraPicker { image = $0 }.ignoresSafeArea() }
+            .fullScreenCover(isPresented: $showCamera) { CameraPicker { image = $0; photoSource = .camera }.ignoresSafeArea() }
             .onDisappear { dictation.stop() }
-            .onChange(of: dictation.text) { _, t in aiText = t }
+            .onChange(of: dictation.text) { _, t in aiText = t; if !t.isEmpty { dictated = true } }
             .onChange(of: pick) { _, new in
-                Task { if let d = try? await new?.loadTransferable(type: Data.self), let img = UIImage(data: d) { image = img } }
+                Task { if let d = try? await new?.loadTransferable(type: Data.self), let img = UIImage(data: d) { image = img; photoSource = .library } }
             }
             .toolbar {
                 ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("Done") { hideKeyboard() } }
@@ -307,6 +310,22 @@ struct AddMealView: View {
             Text(title).font(.caption).foregroundStyle(Color.textSecondary)
             field().foregroundStyle(Color.textPrimary)
         }
+    }
+
+    /// Row for the AI card: a filled yolk circle with a check once that input is done, plus semibold white text.
+    private func aiRow(_ title: String, icon: String, done: Bool) -> some View {
+        HStack(spacing: 12) {
+            ZStack {
+                if done {
+                    Circle().fill(Color.yolk)
+                    Image(systemName: "checkmark").font(.system(size: 12, weight: .bold)).foregroundStyle(Color.yolkInk)
+                } else {
+                    Image(systemName: icon).font(.system(size: 17))
+                }
+            }.frame(width: 26, height: 26)
+            Text(title).fontWeight(done ? .semibold : .regular)
+        }
+        .foregroundStyle(done ? Color.textPrimary : Color.control)
     }
 
     private func analyze() async {
