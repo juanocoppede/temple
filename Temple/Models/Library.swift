@@ -24,6 +24,12 @@ enum Library {
             "Sube solo hasta la altura del hombro. Por encima entran los trapecios y pierdes el foco.",
             "Baja los hombros lejos de las orejas durante todo el movimiento; si te encoges, el peso es demasiado.",
             "Bajada lenta de 3 segundos. Si necesitas balanceo para subir, baja el peso."]),
+        ExerciseSeed(name: "Fondos en barra recta", group: "Chest", equipment: "Single bar", tips: [
+            "Agarra una sola barra a la altura de la cintura o el pecho bajo, manos un poco más anchas que las caderas, brazos estirados y hombros hacia abajo (sin encogerlos).",
+            "Inclina el torso hacia adelante y flexiona las rodillas hacia atrás, cruzando los tobillos, para que las piernas no choquen con el suelo ni con la barra.",
+            "Baja con control llevando el pecho hacia la barra, con los codos hacia atrás y cerca del cuerpo, hasta que los hombros queden cerca de la altura de los codos. No te dejes caer.",
+            "Empuja con las palmas hasta extender los codos sin bloquearlos de golpe; mantén el abdomen firme para que el cuerpo no se balancee.",
+            "Si el hombro molesta, acorta el recorrido o sube la barra."]),
         ExerciseSeed(name: "Fondos en paralelas", group: "Chest", equipment: "Parallel bars", art: "fondos-en-paralelas", tips: [
             "Pecho: inclina el torso 20–30° hacia delante y deja los codos algo abiertos. Tríceps: torso vertical y codos pegados.",
             "Hombros abajo y atrás todo el recorrido; si ruedan hacia delante en el fondo, estás cargando la articulación en vez del músculo.",
