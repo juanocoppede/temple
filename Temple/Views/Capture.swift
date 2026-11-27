@@ -38,6 +38,7 @@ struct CameraPicker: UIViewControllerRepresentable {
     private var silenceTimer: Timer?
 
     func toggle() { listening ? stop() : start() }
+    func reset() { stop(); text = "" }
 
     private func start() {
         SFSpeechRecognizer.requestAuthorization { status in

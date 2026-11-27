@@ -242,6 +242,7 @@ struct AddMealView: View {
     @State private var grams = ""
     @State private var kcal = ""
     @State private var dictated = false
+    @State private var dictationBase = ""
     enum PhotoSource { case camera, library }
     @State private var photoSource: PhotoSource?
     @State private var protein = ""
@@ -250,8 +251,15 @@ struct AddMealView: View {
         NavigationStack {
             Form {
                 Section("Estimate with AI") {
-                    TextField("Describe what you ate", text: $aiText, axis: .vertical)
-                    Button { dictation.toggle() } label: { aiRow(dictation.listening ? "Stop dictation" : "Dictate", icon: dictation.listening ? "stop.circle.fill" : "mic", done: dictated && !dictation.listening) }
+                    HStack(alignment: .top, spacing: 8) {
+                        TextField("Describe what you ate", text: $aiText, axis: .vertical)
+                        if !aiText.isEmpty {
+                            Button { dictation.reset(); aiText = ""; dictated = false } label: {
+                                Image(systemName: "xmark.circle.fill").font(.system(size: 18)).foregroundStyle(Color.textSecondary)
+                            }.buttonStyle(.plain).accessibilityLabel("Clear text")
+                        }
+                    }
+                    Button { if !dictation.listening { dictationBase = aiText; dictation.text = "" }; dictation.toggle() } label: { aiRow(dictation.listening ? "Stop dictation" : "Dictate", icon: dictation.listening ? "stop.circle.fill" : "mic", done: dictated && !dictation.listening) }
                     Button { showCamera = true } label: { aiRow("Take a photo", icon: "camera", done: image != nil && photoSource == .camera) }
                     PhotosPicker(selection: $pick, matching: .images) { aiRow("Choose from library", icon: "photo", done: image != nil && photoSource == .library) }
                 }
@@ -290,7 +298,11 @@ struct AddMealView: View {
             .navigationTitle("Add to \(slot.rawValue)").navigationBarTitleDisplayMode(.inline)
             .fullScreenCover(isPresented: $showCamera) { CameraPicker { image = $0; photoSource = .camera }.ignoresSafeArea() }
             .onDisappear { dictation.stop() }
-            .onChange(of: dictation.text) { _, t in aiText = t; if !t.isEmpty { dictated = true } }
+            .onChange(of: dictation.text) { _, t in
+                guard !t.isEmpty else { return }
+                aiText = dictationBase.isEmpty ? t : dictationBase + " " + t     // new dictation is appended to what is already there
+                dictated = true
+            }
             .onChange(of: pick) { _, new in
                 Task { if let d = try? await new?.loadTransferable(type: Data.self), let img = UIImage(data: d) { image = img; photoSource = .library } }
             }
