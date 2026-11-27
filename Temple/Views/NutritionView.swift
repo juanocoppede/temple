@@ -122,6 +122,7 @@ struct NutritionContent: View {
     @Query private var meals: [MealEntry]
     @Query private var targets: [Targets]
     @State private var addingTo: MealSlot?
+    @State private var editingMeal: MealEntry?
     @State private var showSettings = false
 
     init(day: Date) {
@@ -150,12 +151,14 @@ struct NutritionContent: View {
                             }
                             if items.isEmpty { Text("—").foregroundStyle(Color.textSecondary) }
                             ForEach(items) { m in
+                                Button { editingMeal = m } label: {
                                 HStack {
                                     Text(m.name).font(.system(size: 15, weight: .semibold)).foregroundStyle(Color.textSecondary)
                                     Spacer()
                                     Text("\(fmt(m.kcal)) kcal").font(.system(size: 15, weight: .medium)).monospacedDigit().frame(width: 84, alignment: .trailing)
                                     Text("\(fmt(m.proteinG)) g").font(.system(size: 15, weight: .medium)).monospacedDigit().frame(width: 52, alignment: .trailing)
-                                }
+                                }.contentShape(Rectangle())
+                                }.buttonStyle(.plain)
                             }
                             if !items.isEmpty {
                                 Divider().overlay(Color.white.opacity(0.1))
@@ -176,6 +179,7 @@ struct NutritionContent: View {
             .toolbar { ToolbarItem(placement: .primaryAction) { Button { showSettings = true } label: { Image(systemName: "gearshape") }.tint(Color.textSecondary) } }
             .sheet(isPresented: $showSettings) { SettingsView() }
             .sheet(item: $addingTo) { slot in AddMealView(slot: slot) }
+            .sheet(item: $editingMeal) { EditMealView(meal: $0) }
         }
     }
 }

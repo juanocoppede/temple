@@ -26,17 +26,18 @@ struct RootView: View {
     @Environment(\.modelContext) private var ctx
     @Environment(\.scenePhase) private var phase
     @State private var tab: AppTab = .home
+    @State private var resets: [AppTab: Int] = [:]      // bumping a tab's counter rebuilds it, returning to its root screen
 
     var body: some View {
         ZStack(alignment: .bottom) {
             ZStack {
-                HomeView().opacity(tab == .home ? 1 : 0).allowsHitTesting(tab == .home).zIndex(tab == .home ? 1 : 0)
-                ExercisesView().opacity(tab == .exercises ? 1 : 0).allowsHitTesting(tab == .exercises).zIndex(tab == .exercises ? 1 : 0)
-                PlansView().opacity(tab == .plans ? 1 : 0).allowsHitTesting(tab == .plans).zIndex(tab == .plans ? 1 : 0)
-                NutritionView().opacity(tab == .nutrition ? 1 : 0).allowsHitTesting(tab == .nutrition).zIndex(tab == .nutrition ? 1 : 0)
-                CalendarView().opacity(tab == .calendar ? 1 : 0).allowsHitTesting(tab == .calendar).zIndex(tab == .calendar ? 1 : 0)
+                HomeView().id(resets[.home, default: 0]).opacity(tab == .home ? 1 : 0).allowsHitTesting(tab == .home).zIndex(tab == .home ? 1 : 0)
+                ExercisesView().id(resets[.exercises, default: 0]).opacity(tab == .exercises ? 1 : 0).allowsHitTesting(tab == .exercises).zIndex(tab == .exercises ? 1 : 0)
+                PlansView().id(resets[.plans, default: 0]).opacity(tab == .plans ? 1 : 0).allowsHitTesting(tab == .plans).zIndex(tab == .plans ? 1 : 0)
+                NutritionView().id(resets[.nutrition, default: 0]).opacity(tab == .nutrition ? 1 : 0).allowsHitTesting(tab == .nutrition).zIndex(tab == .nutrition ? 1 : 0)
+                CalendarView().id(resets[.calendar, default: 0]).opacity(tab == .calendar ? 1 : 0).allowsHitTesting(tab == .calendar).zIndex(tab == .calendar ? 1 : 0)
             }
-            FloatingTabBar(selection: $tab)
+            FloatingTabBar(selection: $tab) { resets[$0, default: 0] += 1 }
         }
         .background(Color.bg.ignoresSafeArea())
         .onAppear { Seed.run(ctx); Backup.runDailyIfNeeded(ctx) }
@@ -47,10 +48,11 @@ struct RootView: View {
 /// Floating liquid-glass tab bar: 20 pt from the sides and bottom, 28 pt of air above and below the content.
 struct FloatingTabBar: View {
     @Binding var selection: AppTab
+    var onTap: (AppTab) -> Void = { _ in }
     var body: some View {
         HStack(spacing: 0) {
             ForEach(AppTab.allCases, id: \.self) { t in
-                Button { selection = t } label: {
+                Button { onTap(t); selection = t } label: {
                     VStack(spacing: 4) {
                         Group {
                             if t == .nutrition { TrendBarsIcon().stroke(style: StrokeStyle(lineWidth: 1.75, lineCap: .round, lineJoin: .round)).frame(width: 24, height: 24) }
