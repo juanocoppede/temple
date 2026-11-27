@@ -68,7 +68,7 @@ struct WorkoutView: View {
                 restView(since: start, next: all[index])
             } else if index < all.count {
                 let step = all[index]
-                ScrollView { VStack(spacing: 20) { content(step: step, all: all) } }.scrollIndicators(.hidden)
+                ScrollView { VStack(spacing: 20) { content(step: step, all: all) }.padding(.horizontal, Space.margin) }.padding(.horizontal, -Space.margin).scrollIndicators(.hidden)
                 Button(step.circuit != nil ? "Complete round \(step.number)" : "Complete set \(step.number)") { complete(step: step, all: all) }
                     .buttonStyle(PrimaryButton())
             } else {
@@ -105,7 +105,7 @@ struct WorkoutView: View {
             Text("Currently using \(fmt(ex.weightKg)) kg · \(ex.targetSets) × \(ex.targetReps)").font(.system(size: 15)).foregroundStyle(Color.textSecondary)
         }.frame(maxWidth: .infinity, alignment: .leading)
 
-        ExerciseArt(exercise: ex, side: 220, radius: 24).frame(maxWidth: .infinity)
+        ExerciseArt(exercise: ex, portrait: true, radius: 0).padding(.horizontal, -Space.margin)
         stepper(title: nil, value: "\(fmt(ex.weightKg))", unit: "kg", minus: { ex.weightKg = max(0, ex.weightKg - 1) }, plus: { ex.weightKg += 1 })
         stepper(title: "Reps", value: "\(reps)", unit: ex.isTimed ? "s" : "reps", minus: { reps = max(0, reps - 1) }, plus: { reps += 1 })
 

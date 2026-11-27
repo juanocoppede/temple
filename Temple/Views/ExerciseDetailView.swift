@@ -25,7 +25,7 @@ struct ExerciseDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 36) {
-                ExerciseArt(exercise: exercise, portrait: true, radius: 24)
+                ExerciseArt(exercise: exercise, portrait: true, radius: 0).padding(.horizontal, -Space.margin)
                 VStack(alignment: .leading, spacing: 4) {
                     Text(exercise.name).font(.system(size: 28, weight: .bold))
                     Text("\(exercise.muscleGroup) · \(exercise.equipment)").font(.system(size: 15)).foregroundStyle(Color.textSecondary)
