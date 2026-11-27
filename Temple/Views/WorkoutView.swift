@@ -35,6 +35,7 @@ struct WorkoutView: View {
     @State private var done: [Int: Int] = [:]       // step index -> reps logged
     @State private var session: WorkoutSession?
     @State private var showTips = false
+    @State private var restStart: Date?             // set between rounds of a circuit; never saved
 
     private var steps: [WorkoutStep] {
         let byName = Dictionary(uniqueKeysWithValues: allExercises.map { ($0.name, $0) })
@@ -63,7 +64,9 @@ struct WorkoutView: View {
                 Button("Finish") { dismiss() }.fontWeight(.semibold).foregroundStyle(Color.control)
             }.font(.system(size: 17)).frame(height: 44)
 
-            if index < all.count {
+            if let start = restStart, index < all.count {
+                restView(since: start, next: all[index])
+            } else if index < all.count {
                 let step = all[index]
                 ScrollView { VStack(spacing: 20) { content(step: step, all: all) } }.scrollIndicators(.hidden)
                 Button(step.circuit != nil ? "Complete round \(step.number)" : "Complete set \(step.number)") { complete(step: step, all: all) }
@@ -149,6 +152,28 @@ struct WorkoutView: View {
         step.exercise.targetReps = reps          // remembered as the starting reps next time
         try? ctx.save()
         index += 1
-        if index < all.count { reps = all[index].exercise.targetReps }
+        if index < all.count {
+            reps = all[index].exercise.targetReps
+            let next = all[index]
+            // Finished a round of a circuit and another round follows: start the rest stopwatch.
+            if step.circuit != nil, next.blockIndex == step.blockIndex, next.number != step.number { restStart = .now }
+        }
+    }
+
+    /// Stopwatch shown between circuit rounds so you can see how long you are resting. Not stored anywhere.
+    private func restView(since start: Date, next: WorkoutStep) -> some View {
+        VStack(spacing: 0) {
+            Spacer()
+            Text("REST").font(.system(size: 12, weight: .semibold)).tracking(0.7).foregroundStyle(Color.textSecondary)
+            TimelineView(.periodic(from: start, by: 1)) { ctx in
+                let secs = max(0, Int(ctx.date.timeIntervalSince(start)))
+                Text(String(format: "%d:%02d", secs / 60, secs % 60))
+                    .font(.system(size: 88, weight: .bold)).monospacedDigit().padding(.vertical, 8)
+            }
+            Text("\(next.circuit ?? "Circuit") · next: round \(next.number) of \(next.total)")
+                .font(.system(size: 15)).foregroundStyle(Color.textSecondary)
+            Spacer()
+            Button("Start round \(next.number)") { restStart = nil }.buttonStyle(PrimaryButton())
+        }
     }
 }
