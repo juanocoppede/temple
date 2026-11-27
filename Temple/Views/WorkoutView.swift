@@ -65,7 +65,7 @@ struct WorkoutView: View {
             }.font(.system(size: 17)).frame(height: 44)
 
             if let start = restStart, index < all.count {
-                restView(since: start, next: all[index])
+                restView(since: start, next: all[index], newBlock: index > 0 && all[index - 1].blockIndex != all[index].blockIndex)
             } else if index < all.count {
                 let step = all[index]
                 ScrollView { VStack(spacing: 20) { content(step: step, all: all) }.padding(.horizontal, Space.margin) }.padding(.horizontal, -Space.margin).scrollIndicators(.hidden)
@@ -155,13 +155,13 @@ struct WorkoutView: View {
         if index < all.count {
             reps = all[index].exercise.targetReps
             let next = all[index]
-            // Finished a round of a circuit and another round follows: start the rest stopwatch.
-            if step.circuit != nil, next.blockIndex == step.blockIndex, next.number != step.number { restStart = .now }
+            // Finished a round of a circuit and something follows (another round or the next circuit/exercise): start the rest stopwatch.
+            if step.circuit != nil, next.blockIndex != step.blockIndex || next.number != step.number { restStart = .now }
         }
     }
 
     /// Stopwatch shown between circuit rounds so you can see how long you are resting. Not stored anywhere.
-    private func restView(since start: Date, next: WorkoutStep) -> some View {
+    private func restView(since start: Date, next: WorkoutStep, newBlock: Bool) -> some View {
         VStack(spacing: 0) {
             Spacer()
             Text("REST").font(.system(size: 12, weight: .semibold)).tracking(0.7).foregroundStyle(Color.textSecondary)
@@ -170,10 +170,11 @@ struct WorkoutView: View {
                 Text(String(format: "%d:%02d", secs / 60, secs % 60))
                     .font(.system(size: 88, weight: .bold)).monospacedDigit().padding(.vertical, 8)
             }
-            Text("\(next.circuit ?? "Circuit") · next: round \(next.number) of \(next.total)")
+            Text(newBlock ? (next.circuit != nil ? "Next: \(next.circuit!)" : "Next: \(next.exercise.name)")
+                          : "\(next.circuit ?? "Circuit") · next: round \(next.number) of \(next.total)")
                 .font(.system(size: 15)).foregroundStyle(Color.textSecondary)
             Spacer()
-            Button("Start round \(next.number)") { restStart = nil }.buttonStyle(PrimaryButton())
+            Button(newBlock ? (next.circuit != nil ? "Start \(next.circuit!)" : "Start next exercise") : "Start round \(next.number)") { restStart = nil }.buttonStyle(PrimaryButton())
         }
     }
 }
