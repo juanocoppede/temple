@@ -125,12 +125,11 @@ struct WorkoutView: View {
             }
         }
 
-        if !ex.tips.isEmpty {
-            VStack(alignment: .leading, spacing: 12) {
-                Text("How to do it").font(.system(size: 20, weight: .bold)).foregroundStyle(Color.textPrimary)
-                TipsList(tips: ex.tips)
-            }.frame(maxWidth: .infinity, alignment: .leading).padding(.top, 8)
-        }
+        // Full exercise info (same sections as the exercise detail), on a different background.
+        ExerciseInfoSections(exercise: ex, spacing: 32)
+            .padding(Space.inCard + 4)
+            .background(Color.card, in: RoundedRectangle(cornerRadius: 24))
+            .padding(.top, 12)
     }
 
     private func stepper(title: String?, value: String, unit: String, minus: @escaping () -> Void, plus: @escaping () -> Void) -> some View {

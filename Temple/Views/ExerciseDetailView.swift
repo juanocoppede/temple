@@ -4,10 +4,34 @@ import Charts
 
 struct ExerciseDetailView: View {
     let exercise: Exercise
+    init(exercise: Exercise) { self.exercise = exercise }
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 36) {
+                ExerciseArt(exercise: exercise, portrait: true, radius: 0).padding(.horizontal, -Space.margin)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(exercise.name).font(.system(size: 28, weight: .bold))
+                    Text("\(exercise.muscleGroup) · \(exercise.equipment)").font(.system(size: 15)).foregroundStyle(Color.textSecondary)
+                    Text("Currently using \(fmt(exercise.weightKg)) kg · \(exercise.targetSets) × \(exercise.targetReps)").font(.system(size: 15)).foregroundStyle(Color.textSecondary)
+                }
+                ExerciseInfoSections(exercise: exercise, spacing: 36)
+            }.padding(Space.margin).foregroundStyle(Color.textPrimary).frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .contentMargins(.bottom, Space.tabBarClearance, for: .scrollContent)
+        .background(Color.bg).navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+
+/// Muscles worked, how-to tips, weight progress and last 7 days: shared by the exercise detail and the workout screen.
+struct ExerciseInfoSections: View {
+    let exercise: Exercise
+    var spacing: CGFloat = 36
     @Query private var logs: [SetLog]
-    
-    init(exercise: Exercise) {
-        self.exercise = exercise
+
+    init(exercise: Exercise, spacing: CGFloat = 36) {
+        self.exercise = exercise; self.spacing = spacing
         let n = exercise.name
         _logs = Query(filter: #Predicate<SetLog> { $0.exerciseName == n }, sort: \.date)
     }
@@ -23,14 +47,7 @@ struct ExerciseDetailView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 36) {
-                ExerciseArt(exercise: exercise, portrait: true, radius: 0).padding(.horizontal, -Space.margin)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(exercise.name).font(.system(size: 28, weight: .bold))
-                    Text("\(exercise.muscleGroup) · \(exercise.equipment)").font(.system(size: 15)).foregroundStyle(Color.textSecondary)
-                    Text("Currently using \(fmt(exercise.weightKg)) kg · \(exercise.targetSets) × \(exercise.targetReps)").font(.system(size: 15)).foregroundStyle(Color.textSecondary)
-                }
+        VStack(alignment: .leading, spacing: spacing) {
                 if let n = exercise.illustration, let img = UIImage(named: n + "-musc") {
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Muscles worked").font(.system(size: 20, weight: .bold)).foregroundStyle(Color.textPrimary)
@@ -73,9 +90,6 @@ struct ExerciseDetailView: View {
                         }
                     }
                 }
-            }.padding(Space.margin).foregroundStyle(Color.textPrimary).frame(maxWidth: .infinity, alignment: .leading)
         }
-        .contentMargins(.bottom, Space.tabBarClearance, for: .scrollContent)
-        .background(Color.bg).navigationBarTitleDisplayMode(.inline)
     }
 }
