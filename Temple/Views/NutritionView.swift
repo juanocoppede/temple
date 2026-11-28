@@ -169,7 +169,7 @@ struct NutritionContent: View {
                                     Text("\(fmt(items.reduce(0) { $0 + $1.proteinG })) g").font(.system(size: 15, weight: .bold)).monospacedDigit().frame(width: 52, alignment: .trailing)
                                 }
                             }
-                        }.frame(maxWidth: .infinity, alignment: .leading).card()
+                        }.glassCard()
                     }
                 }.padding(Space.margin).foregroundStyle(Color.textPrimary)
             }

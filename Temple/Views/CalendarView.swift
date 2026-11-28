@@ -133,7 +133,7 @@ struct DayContent: View {
                                     Text("\(fmt(items.reduce(0) { $0 + $1.proteinG })) g").font(.system(size: 13, weight: .bold)).monospacedDigit().frame(width: 52, alignment: .trailing)
                                 }
                             }
-                        }
+                        }.glassCard()
                     }
                 }
             }.padding(Space.margin).foregroundStyle(Color.textPrimary).frame(maxWidth: .infinity, alignment: .leading)

@@ -89,6 +89,25 @@ struct TrendBarsIcon: Shape {
     }
 }
 
+/// Liquid Glass card (rounded rectangle) with the standard in-card padding.
+struct GlassCard: ViewModifier {
+    @ViewBuilder func body(content: Content) -> some View {
+        let padded = content.padding(Space.inCard).frame(maxWidth: .infinity, alignment: .leading)
+        #if compiler(>=6.2)
+        if #available(iOS 26.0, *) {
+            padded.glassEffect(.regular, in: RoundedRectangle(cornerRadius: Radius.card))
+        } else { fallback(padded) }
+        #else
+        fallback(padded)
+        #endif
+    }
+    private func fallback(_ content: some View) -> some View {
+        content.background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: Radius.card))
+            .overlay(RoundedRectangle(cornerRadius: Radius.card).stroke(Color.white.opacity(0.12), lineWidth: 1))
+    }
+}
+extension View { func glassCard() -> some View { modifier(GlassCard()) } }
+
 /// Liquid Glass capsule for chips and fields (material fallback before iOS 26).
 struct GlassCapsule: ViewModifier {
     var tint: Color? = nil
